@@ -17,23 +17,7 @@ function signJwt(userId) {
   return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: "7d" });
 }
 
-async function devVerify(req, res) {
-  const { email } = req.body;
-  if (!email) return res.status(400).json({ message: "Missing email" });
-
-  const user = await User.findOne({ email: email.toLowerCase() });
-  if (!user) return res.status(404).json({ message: "User not found" });
-
-  user.isVerified = true;
-  await user.save();
-
-  return res.json({ message: "User verified (dev)", email: user.email });
-}
-
-exports.devVerify = devVerify;
-
-
-exports.register = async (req, res) => {
+async function register(req, res) {
   try {
     const { name, email, password } = req.body;
 
@@ -66,15 +50,13 @@ exports.register = async (req, res) => {
 
     await sendVerificationEmail({ to: user.email, name: user.name, verifyUrl });
 
-    return res.status(201).json({
-      message: "Registered. Please verify your email.",
-    });
+    return res.status(201).json({ message: "Registered. Please verify your email." });
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }
-};
+}
 
-exports.verify = async (req, res) => {
+async function verify(req, res) {
   try {
     const { id, token } = req.query;
     if (!id || !token) return res.status(400).json({ message: "Missing token or id" });
@@ -98,9 +80,9 @@ exports.verify = async (req, res) => {
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }
-};
+}
 
-exports.login = async (req, res) => {
+async function login(req, res) {
   try {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ message: "Missing fields" });
@@ -122,9 +104,9 @@ exports.login = async (req, res) => {
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }
-};
+}
 
-exports.resendVerification = async (req, res) => {
+async function resendVerification(req, res) {
   try {
     const { email } = req.body;
     if (!email) return res.status(400).json({ message: "Missing email" });
@@ -138,6 +120,7 @@ exports.resendVerification = async (req, res) => {
     const token = makeToken();
     const tokenHash = hashToken(token);
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
     await VerificationToken.create({ userId: user._id, tokenHash, expiresAt });
 
     const appUrl = process.env.APP_URL || "http://localhost:5173";
@@ -149,12 +132,40 @@ exports.resendVerification = async (req, res) => {
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }
-};
+}
+
+async function devVerify(req, res) {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: "Missing email" });
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.isVerified = true;
+    await user.save();
+
+    return res.json({ message: "User verified (dev)", email: user.email });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+}
+
+async function me(req, res) {
+  try {
+    const user = await User.findById(req.user.id).select("_id name email isVerified createdAt");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    return res.json({ user });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+}
 
 module.exports = {
-  register: exports.register,
-  verify: exports.verify,
-  login: exports.login,
-  resendVerification: exports.resendVerification,
-  devVerify: exports.devVerify,
+  register,
+  verify,
+  login,
+  resendVerification,
+  devVerify,
+  me,
 };
