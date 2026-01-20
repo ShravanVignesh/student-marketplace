@@ -1,41 +1,121 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { api } from "../api.js";
+import { Link } from "react-router-dom";
 
 export default function Listings() {
   const [listings, setListings] = useState([]);
   const [err, setErr] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const [q, setQ] = useState("");
+  const [category, setCategory] = useState("");
+  const [status, setStatus] = useState("");
+
+  const queryString = useMemo(() => {
+    const params = new URLSearchParams();
+    if (q.trim()) params.set("q", q.trim());
+    if (category.trim()) params.set("category", category.trim());
+    if (status) params.set("status", status);
+    const s = params.toString();
+    return s ? `?${s}` : "";
+  }, [q, category, status]);
+
+  async function load() {
+    setErr("");
+    setLoading(true);
+    try {
+      const res = await api.get(`/api/listings${queryString}`);
+      setListings(res.data.listings || []);
+    } catch (e) {
+      setErr(e.response?.data?.message || "Failed to load listings");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
-    async function load() {
-      try {
-        const res = await api.get("/api/listings");
-        setListings(res.data.listings || []);
-      } catch (e) {
-        setErr(e.response?.data?.message || e.message || "Failed to load listings");
-      }
-    }
-    load();
-  }, []);
+    const t = setTimeout(load, 300);
+    return () => clearTimeout(t);
+  }, [queryString]);
+
+  function clearFilters() {
+    setQ("");
+    setCategory("");
+    setStatus("");
+  }
+
+  const countText = loading
+    ? "Loading..."
+    : `${listings.length} ${listings.length === 1 ? "result" : "results"} found`;
 
   return (
     <div style={{ padding: 20 }}>
-      <h2>Listings</h2>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div>
+          <h2 style={{ margin: 0 }}>Listings</h2>
+          <div style={{ marginTop: 6, fontSize: 14 }}>{countText}</div>
+        </div>
 
-      {err && <p>{err}</p>}
+        <Link to="/create">Create listing</Link>
+      </div>
 
-      {listings.length === 0 ? (
-        <p>No listings yet.</p>
+      <div style={{ marginTop: 12, border: "1px solid #ddd", padding: 12 }}>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <input
+            placeholder="Search (title or description)"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            style={{ minWidth: 260 }}
+          />
+
+          <input
+            placeholder="Category (example: Electronics)"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            style={{ minWidth: 220 }}
+          />
+
+          <select value={status} onChange={(e) => setStatus(e.target.value)}>
+            <option value="">Any status</option>
+            <option value="active">Active</option>
+            <option value="sold">Sold</option>
+          </select>
+
+          <button onClick={clearFilters}>Clear</button>
+          <button onClick={load} disabled={loading}>
+            {loading ? "Loading..." : "Refresh"}
+          </button>
+        </div>
+      </div>
+
+      {err && <p style={{ marginTop: 12 }}>{err}</p>}
+
+      {loading ? (
+        <p style={{ marginTop: 12 }}>Loading...</p>
+      ) : listings.length === 0 ? (
+        <p style={{ marginTop: 12 }}>No listings found.</p>
       ) : (
-        listings.map((l) => (
-          <div key={l._id} style={{ border: "1px solid #ddd", padding: 12, marginBottom: 12 }}>
-            <h3>{l.title}</h3>
-            <p>{l.description}</p>
-            <p>£{l.price}</p>
-            <p>Category: {l.category}</p>
-            <p>Location: {l.location}</p>
-            <p>Seller: {l.owner?.name || "Unknown"}</p>
-          </div>
-        ))
+        <div style={{ marginTop: 12 }}>
+          {listings.map((l) => (
+            <div key={l._id} style={{ border: "1px solid #ddd", padding: 12, marginBottom: 12 }}>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <h3 style={{ margin: 0 }}>{l.title}</h3>
+                <strong>£{l.price}</strong>
+              </div>
+
+              <p>{l.description}</p>
+
+              <div style={{ fontSize: 14 }}>
+                <div>Status: {l.status || "active"}</div>
+                <div>Category: {l.category || "None"}</div>
+                <div>Location: {l.location || "None"}</div>
+                <div>
+                  Seller: {l.owner?.name} ({l.owner?.email})
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
