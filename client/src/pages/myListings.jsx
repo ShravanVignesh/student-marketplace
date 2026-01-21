@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { api } from "../api.js";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -10,6 +10,17 @@ export default function MyListings() {
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState("");
 
+  const serverBase = useMemo(() => {
+    const base = api?.defaults?.baseURL || "";
+    return base.endsWith("/") ? base.slice(0, -1) : base;
+  }, []);
+
+  function fileUrl(path) {
+    if (!path) return "";
+    if (path.startsWith("http")) return path;
+    return `${serverBase}${path}`;
+  }
+
   async function load() {
     setMsg("");
     setLoading(true);
@@ -19,7 +30,6 @@ export default function MyListings() {
     } catch (err) {
       const status = err.response?.status;
       const message = err.response?.data?.message || "Failed to load your listings";
-
       if (status === 401) setMsg("Login required. Please login first.");
       else setMsg(message);
     } finally {
@@ -36,7 +46,6 @@ export default function MyListings() {
     } catch (err) {
       const status = err.response?.status;
       const message = err.response?.data?.message || "Delete failed";
-
       if (status === 401) setMsg("Login required.");
       else if (status === 403) setMsg("Not allowed. You can only delete your own listings.");
       else setMsg(message);
@@ -64,24 +73,42 @@ export default function MyListings() {
       ) : listings.length === 0 ? (
         <p>No listings yet</p>
       ) : (
-        listings.map((l) => (
-          <div key={l._id} style={{ border: "1px solid #ddd", padding: 12, marginBottom: 12 }}>
-            <h3 style={{ margin: 0 }}>{l.title}</h3>
-            <p style={{ margin: "8px 0" }}>{l.description}</p>
-            <p style={{ margin: "8px 0" }}>£{l.price}</p>
-            <p style={{ margin: "8px 0" }}>
-              {l.category ? `Category: ${l.category}` : ""} {l.location ? ` | Location: ${l.location}` : ""}
-            </p>
+        listings.map((l) => {
+          const imgPath = Array.isArray(l.images) && l.images.length > 0 ? l.images[0] : "";
+          const img = fileUrl(imgPath);
 
-            <button onClick={() => nav(`/edit/${l._id}`)} style={{ marginRight: 10 }}>
-              Edit
-            </button>
+          return (
+            <div key={l._id} style={{ border: "1px solid #ddd", padding: 12, marginBottom: 12 }}>
+              {img && (
+                <img
+                  src={img}
+                  alt={l.title}
+                  style={{
+                    width: 320,
+                    height: "auto",
+                    display: "block",
+                    marginBottom: 10,
+                  }}
+                />
+              )}
 
-            <button onClick={() => remove(l._id)} disabled={deletingId === l._id}>
-              {deletingId === l._id ? "Deleting..." : "Delete"}
-            </button>
-          </div>
-        ))
+              <h3 style={{ margin: 0 }}>{l.title}</h3>
+              <p style={{ margin: "8px 0" }}>{l.description}</p>
+              <p style={{ margin: "8px 0" }}>£{l.price}</p>
+              <p style={{ margin: "8px 0" }}>
+                {l.category ? `Category: ${l.category}` : ""} {l.location ? ` | Location: ${l.location}` : ""}
+              </p>
+
+              <button onClick={() => nav(`/edit/${l._id}`)} style={{ marginRight: 10 }}>
+                Edit
+              </button>
+
+              <button onClick={() => remove(l._id)} disabled={deletingId === l._id}>
+                {deletingId === l._id ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          );
+        })
       )}
     </div>
   );

@@ -20,6 +20,17 @@ export default function Listings() {
     return s ? `?${s}` : "";
   }, [q, category, status]);
 
+  const serverBase = useMemo(() => {
+    const base = api?.defaults?.baseURL || "";
+    return base.endsWith("/") ? base.slice(0, -1) : base;
+  }, []);
+
+  function fileUrl(path) {
+    if (!path) return "";
+    if (path.startsWith("http")) return path;
+    return `${serverBase}${path}`;
+  }
+
   async function load() {
     setErr("");
     setLoading(true);
@@ -96,25 +107,41 @@ export default function Listings() {
         <p style={{ marginTop: 12 }}>No listings found.</p>
       ) : (
         <div style={{ marginTop: 12 }}>
-          {listings.map((l) => (
-            <div key={l._id} style={{ border: "1px solid #ddd", padding: 12, marginBottom: 12 }}>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <h3 style={{ margin: 0 }}>{l.title}</h3>
-                <strong>£{l.price}</strong>
-              </div>
+          {listings.map((l) => {
+            const imgPath =
+              Array.isArray(l.images) && l.images.length > 0 ? l.images[0] : "";
+            const img = fileUrl(imgPath);
 
-              <p>{l.description}</p>
+            return (
+              <div key={l._id} style={{ border: "1px solid #ddd", padding: 12, marginBottom: 12 }}>
+                {img && (
+                  <img
+                    src={img}
+                    alt={l.title}
+                    style={{
+                      width: 260,
+                      height: "auto",
+                      display: "block",
+                      marginBottom: 10,
+                    }}
+                  />
+                )}
 
-              <div style={{ fontSize: 14 }}>
-                <div>Status: {l.status || "active"}</div>
-                <div>Category: {l.category || "None"}</div>
-                <div>Location: {l.location || "None"}</div>
-                <div>
-                  Seller: {l.owner?.name} ({l.owner?.email})
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <h3 style={{ margin: 0 }}>{l.title}</h3>
+                  <strong>£{l.price}</strong>
+                </div>
+
+                <p>{l.description}</p>
+
+                <div style={{ fontSize: 14 }}>
+                  <div>Status: {l.status || "active"}</div>
+                  <div>Category: {l.category || "None"}</div>
+                  <div>Location: {l.location || "None"}</div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

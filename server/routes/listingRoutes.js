@@ -1,16 +1,53 @@
 const express = require("express");
 const router = express.Router();
+const path = require("path");
+const multer = require("multer");
+const fs = require("fs");
 
 const listings = require("../controllers/listingsController");
 const requireAuth = require("../middleware/requireAuth");
 
-router.get("/", listings.list); // public browse
-router.post("/", requireAuth, listings.create); // protected create
-router.get("/mine", requireAuth, listings.mine); // protected mine
+// Ensure uploads folder exists
+const uploadsDir = path.join(__dirname, "..", "uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
 
-router.get("/:id", listings.getOne); // public single listing
-router.put("/:id", requireAuth, listings.update); // protected edit (owner only)
+// Multer storage config (saves to server/uploads)
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadsDir);
+  },
+  filename: (req, file, cb) => {
+    const safeOriginal = file.originalname.replace(/\s+/g, "_");
+    cb(null, `${Date.now()}_${safeOriginal}`);
+  },
+});
 
-router.delete("/:id", requireAuth, listings.remove); // protected delete (owner only)
+function fileFilter(req, file, cb) {
+  const ok = ["image/jpeg", "image/png", "image/webp", "image/jpg"].includes(file.mimetype);
+  if (!ok) return cb(new Error("Only image files are allowed (jpg, png, webp)"));
+  cb(null, true);
+}
+
+const upload = multer({ storage, fileFilter });
+
+// public browse
+router.get("/", listings.list);
+
+// protected
+router.get("/mine", requireAuth, listings.mine);
+
+// create listing with optional image upload (field name must be "image")
+router.post("/", requireAuth, upload.single("image"), listings.create);
+
+// get one listing for edit page (owner only)
+router.get("/:id", requireAuth, listings.getOne);
+
+// update listing, optional image replace (field name must be "image")
+router.put("/:id", requireAuth, upload.single("image"), listings.update);
+
+// delete listing
+router.delete("/:id", requireAuth, listings.remove);
 
 module.exports = router;

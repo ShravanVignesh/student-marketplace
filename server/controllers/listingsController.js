@@ -1,20 +1,31 @@
 const Listing = require("../models/listing");
 
+// helper: check ownership
+function assertOwner(listing, userId) {
+  return listing.owner && listing.owner.toString() === String(userId);
+}
+
 exports.create = async (req, res) => {
   try {
-    const { title, description, price, category, location, images } = req.body;
+    const { title, description, price, category, location } = req.body;
 
     if (!title || !description || price === undefined) {
       return res.status(400).json({ message: "title, description, price are required" });
     }
 
+    // If file uploaded, store a public URL path
+    const images = [];
+    if (req.file) {
+      images.push(`/uploads/${req.file.filename}`);
+    }
+
     const listing = await Listing.create({
-      title,
-      description,
+      title: String(title).trim(),
+      description: String(description).trim(),
       price: Number(price),
-      category: category || "",
-      location: location || "",
-      images: Array.isArray(images) ? images : [],
+      category: category ? String(category).trim() : "",
+      location: location ? String(location).trim() : "",
+      images,
       owner: req.user.id,
     });
 
@@ -57,22 +68,29 @@ exports.mine = async (req, res) => {
   }
 };
 
+// NEW: get single listing for edit page (owner only)
 exports.getOne = async (req, res) => {
   try {
-    const listing = await Listing.findById(req.params.id).populate("owner", "name email");
+    const listing = await Listing.findById(req.params.id);
     if (!listing) return res.status(404).json({ message: "Listing not found" });
+
+    if (!assertOwner(listing, req.user.id)) {
+      return res.status(403).json({ message: "Not allowed" });
+    }
+
     return res.json({ listing });
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }
 };
 
+// NEW: update listing (owner only). Optionally replace image.
 exports.update = async (req, res) => {
   try {
     const listing = await Listing.findById(req.params.id);
     if (!listing) return res.status(404).json({ message: "Listing not found" });
 
-    if (listing.owner.toString() !== req.user.id) {
+    if (!assertOwner(listing, req.user.id)) {
       return res.status(403).json({ message: "Not allowed" });
     }
 
@@ -80,20 +98,32 @@ exports.update = async (req, res) => {
 
     if (title !== undefined) listing.title = String(title).trim();
     if (description !== undefined) listing.description = String(description).trim();
-    if (price !== undefined) listing.price = Number(price);
+
+    if (price !== undefined) {
+      const p = Number(price);
+      if (Number.isNaN(p)) return res.status(400).json({ message: "price must be a number" });
+      listing.price = p;
+    }
+
     if (category !== undefined) listing.category = String(category).trim();
     if (location !== undefined) listing.location = String(location).trim();
 
     if (status !== undefined) {
       const s = String(status);
       if (!["active", "sold"].includes(s)) {
-        return res.status(400).json({ message: "Invalid status. Use active or sold." });
+        return res.status(400).json({ message: "status must be active or sold" });
       }
       listing.status = s;
     }
 
+    // If new file uploaded, replace images with the new one
+    if (req.file) {
+      listing.images = [`/uploads/${req.file.filename}`];
+    }
+
     await listing.save();
-    return res.json({ message: "Updated", listing });
+
+    return res.json({ listing });
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }
@@ -104,7 +134,7 @@ exports.remove = async (req, res) => {
     const listing = await Listing.findById(req.params.id);
     if (!listing) return res.status(404).json({ message: "Listing not found" });
 
-    if (listing.owner.toString() !== req.user.id) {
+    if (!assertOwner(listing, req.user.id)) {
       return res.status(403).json({ message: "Not allowed" });
     }
 

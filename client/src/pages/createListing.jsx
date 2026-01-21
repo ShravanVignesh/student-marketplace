@@ -13,6 +13,7 @@ export default function CreateListing() {
     location: "",
   });
 
+  const [imageFile, setImageFile] = useState(null);
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -36,12 +37,16 @@ export default function CreateListing() {
     setLoading(true);
 
     try {
-      await api.post("/api/listings", {
-        title,
-        description,
-        price: priceNum,
-        category: form.category.trim(),
-        location: form.location.trim(),
+      const fd = new FormData();
+      fd.append("title", title);
+      fd.append("description", description);
+      fd.append("price", String(priceNum));
+      fd.append("category", form.category.trim());
+      fd.append("location", form.location.trim());
+      if (imageFile) fd.append("image", imageFile);
+
+      await api.post("/api/listings", fd, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
       nav("/my-listings", { replace: true });
@@ -49,13 +54,10 @@ export default function CreateListing() {
       const status = err.response?.status;
       const message = err.response?.data?.message || "Failed to create listing";
 
-      if (status === 401) {
-        setMsg("You are not logged in. Please login first.");
-      } else if (status === 403) {
-        setMsg("Not allowed. Make sure your account is verified.");
-      } else {
-        setMsg(message);
-      }
+      if (status === 401) setMsg("You are not logged in. Please login first.");
+      else if (status === 403) setMsg("Not allowed. Make sure your account is verified.");
+      else setMsg(message);
+
       setLoading(false);
     }
   }
@@ -101,8 +103,14 @@ export default function CreateListing() {
           placeholder="Location"
           value={form.location}
           onChange={(e) => setField("location", e.target.value)}
-          style={{ width: "100%", marginBottom: 8 }}
+          style={{ width: "100%", marginBottom: 12 }}
         />
+
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ marginBottom: 6 }}>Image (optional)</div>
+          <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files?.[0] || null)} />
+          {imageFile ? <div style={{ marginTop: 6, fontSize: 13 }}>{imageFile.name}</div> : null}
+        </div>
 
         <button type="submit" disabled={loading}>
           {loading ? "Posting..." : "Post"}

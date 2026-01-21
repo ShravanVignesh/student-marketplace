@@ -2,6 +2,7 @@ console.log("SERVER FILE LOADED:", __filename);
 
 require("dotenv").config({ path: __dirname + "/.env" });
 
+const path = require("path");
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -23,6 +24,9 @@ app.use(
 );
 
 console.log("MONGO_URI:", process.env.MONGO_URI);
+
+// Serve uploaded images publicly
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // MongoDB connection
 mongoose
