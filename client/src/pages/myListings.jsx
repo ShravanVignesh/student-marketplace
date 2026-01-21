@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { api } from "../api.js";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function MyListings() {
+  const nav = useNavigate();
+
   const [listings, setListings] = useState([]);
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(true);
@@ -70,6 +72,10 @@ export default function MyListings() {
             <p style={{ margin: "8px 0" }}>
               {l.category ? `Category: ${l.category}` : ""} {l.location ? ` | Location: ${l.location}` : ""}
             </p>
+
+            <button onClick={() => nav(`/edit/${l._id}`)} style={{ marginRight: 10 }}>
+              Edit
+            </button>
 
             <button onClick={() => remove(l._id)} disabled={deletingId === l._id}>
               {deletingId === l._id ? "Deleting..." : "Delete"}

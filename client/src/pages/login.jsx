@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../api.js";
+import { useAuth } from "../auth/AuthContext.jsx";
 
 export default function Login() {
   const nav = useNavigate();
+  const { refreshMe } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,8 +21,9 @@ export default function Login() {
       const res = await api.post("/api/auth/login", { email, password });
       localStorage.setItem("token", res.data.token);
 
+      await refreshMe();
+
       nav("/listings", { replace: true });
-      window.location.reload(); // reload to refresh navbar name using /me
     } catch (err) {
       setMsg(err.response?.data?.message || "Error");
       setLoading(false);

@@ -30,7 +30,7 @@ async function register(req, res) {
 
     const passwordHash = await bcrypt.hash(password, 12);
 
-    const user = await User.create({
+    const user = await User.create({ 
       name,
       email: email.toLowerCase(),
       passwordHash,

@@ -9,6 +9,7 @@ import Verify from "./pages/verify.jsx";
 import Listings from "./pages/listings.jsx";
 import CreateListing from "./pages/createListing.jsx";
 import MyListings from "./pages/myListings.jsx";
+import EditListing from "./pages/editListing.jsx";
 
 import { AuthProvider, useAuth } from "./auth/AuthContext.jsx";
 import ProtectedRoute from "./auth/ProtectedRoute.jsx";
@@ -70,6 +71,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route element={<ProtectedRoute />}>
             <Route path="/create" element={<CreateListing />} />
             <Route path="/my-listings" element={<MyListings />} />
+            <Route path="/edit/:id" element={<EditListing />} />
           </Route>
         </Routes>
       </BrowserRouter>
