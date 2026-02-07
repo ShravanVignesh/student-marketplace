@@ -26,6 +26,9 @@ app.use(
   })
 );
 
+// Health check endpoint for UptimeRobot
+app.get("/ping", (req, res) => res.status(200).send("pong"));
+
 console.log("MONGO_URI:", process.env.MONGO_URI);
 
 // Serve uploaded images publicly
