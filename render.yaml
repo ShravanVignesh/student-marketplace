@@ -3,7 +3,7 @@ services:
     name: student-marketplace-api
     env: node
     plan: free
-    buildCommand: npm install
+    buildCommand: rm -rf node_modules && npm install
     startCommand: node server/server.js
     envVars:
       - key: MONGO_URI
