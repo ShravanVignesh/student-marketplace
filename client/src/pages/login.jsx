@@ -31,35 +31,62 @@ export default function Login() {
   }
 
   return (
-    <div style={{ padding: 20, maxWidth: 420 }}>
-      <h2>Login</h2>
+    <div className="auth-container">
+      <div className="card">
+        <div className="auth-header">
+          <h2>Welcome Back</h2>
+          <p>Login to manage your listings</p>
+        </div>
 
-      <form onSubmit={onSubmit}>
-        <input
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          style={{ width: "100%", marginBottom: 8 }}
-        />
+        <form onSubmit={onSubmit} className="flex flex-col gap-md">
+          <div>
+            <label style={{ display: "block", marginBottom: "4px", fontWeight: 500 }}>Email</label>
+            <input
+              placeholder="name@university.ac.uk"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
 
-        <input
-          placeholder="Password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          style={{ width: "100%", marginBottom: 8 }}
-        />
+          <div>
+            <div className="flex" style={{ justifyContent: "space-between" }}>
+              <label style={{ display: "block", marginBottom: "4px", fontWeight: 500 }}>Password</label>
+            </div>
+            <input
+              placeholder="Enter your password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
 
-        <button type="submit" disabled={loading}>
-          {loading ? "Logging in..." : "Login"}
-        </button>
-      </form>
+          <button type="submit" disabled={loading} className="w-full mt-md">
+            {loading ? "Logging in..." : "Login"}
+          </button>
+        </form>
 
-      {msg && <p style={{ marginTop: 12 }}>{msg}</p>}
+        {msg && (
+          <div style={{
+            marginTop: "16px",
+            padding: "12px",
+            borderRadius: "var(--border-radius)",
+            backgroundColor: "#fee2e2",
+            color: "#b91c1c",
+            textAlign: "center"
+          }}>
+            {msg}
+          </div>
+        )}
 
-      <p style={{ marginTop: 16 }}>
-        New user? <Link to="/register">Register</Link>
-      </p>
+        <div className="mt-md" style={{ textAlign: "center", borderTop: "1px solid var(--border-color)", paddingTop: "16px" }}>
+          <p style={{ marginBottom: 0 }}>
+            Don't have an account? <Link to="/register" style={{ fontWeight: 600 }}>Sign up</Link>
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

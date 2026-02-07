@@ -19,15 +19,14 @@ export default function EditListing() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const [currentImage, setCurrentImage] = useState(""); // string path like /uploads/xxx
-  const [newImageFile, setNewImageFile] = useState(null); // File
+  const [currentImage, setCurrentImage] = useState("");
+  const [newImageFile, setNewImageFile] = useState(null);
 
   function setField(key, value) {
     setForm((p) => ({ ...p, [key]: value }));
   }
 
   const serverBase = useMemo(() => {
-    // api baseURL is set in api.js
     const base = api?.defaults?.baseURL || "";
     return base.endsWith("/") ? base.slice(0, -1) : base;
   }, []);
@@ -75,7 +74,6 @@ export default function EditListing() {
 
   useEffect(() => {
     return () => {
-      // cleanup preview url to avoid memory leak
       if (newImagePreviewUrl) URL.revokeObjectURL(newImagePreviewUrl);
     };
   }, [newImagePreviewUrl]);
@@ -83,6 +81,7 @@ export default function EditListing() {
   async function onSubmit(e) {
     e.preventDefault();
     setMsg("");
+    setSaving(true);
 
     const title = form.title.trim();
     const description = form.description.trim();
@@ -90,13 +89,11 @@ export default function EditListing() {
 
     if (!title || !description || Number.isNaN(priceNum)) {
       setMsg("Please fill title, description and a valid price.");
+      setSaving(false);
       return;
     }
 
-    setSaving(true);
-
     try {
-      // If user picked a new image, send multipart/form-data
       if (newImageFile) {
         const fd = new FormData();
         fd.append("title", title);
@@ -105,13 +102,12 @@ export default function EditListing() {
         fd.append("category", form.category.trim());
         fd.append("location", form.location.trim());
         fd.append("status", form.status);
-        fd.append("image", newImageFile); // must match upload.single("image")
+        fd.append("image", newImageFile);
 
         await api.put(`/api/listings/${id}`, fd, {
           headers: { "Content-Type": "multipart/form-data" },
         });
       } else {
-        // normal JSON update
         await api.put(`/api/listings/${id}`, {
           title,
           description,
@@ -130,118 +126,147 @@ export default function EditListing() {
       if (status === 401) setMsg("Login required.");
       else if (status === 403) setMsg("Not allowed. You can only edit your own listings.");
       else setMsg(message);
-    } finally {
+
       setSaving(false);
     }
   }
 
   return (
-    <div style={{ padding: 20, maxWidth: 560 }}>
-      <h2>Edit Listing</h2>
+    <div className="container" style={{ marginTop: "40px", marginBottom: "40px" }}>
+      <div className="card" style={{ maxWidth: "600px", margin: "0 auto" }}>
+        <div className="flex items-center" style={{ justifyContent: "space-between", marginBottom: "24px" }}>
+          <h2 style={{ margin: 0 }}>Edit Listing</h2>
+          <Link to="/my-listings" style={{ fontSize: "0.9rem" }}>Cancel</Link>
+        </div>
 
-      <p>
-        <Link to="/my-listings">Back to My Listings</Link>
-      </p>
+        {loading ? (
+          <div style={{ textAlign: "center", padding: "40px", color: "var(--text-secondary)" }}>Loading listing details...</div>
+        ) : (
+          <form onSubmit={onSubmit} className="flex flex-col gap-md">
+            <div>
+              <label style={{ display: "block", marginBottom: "6px", fontWeight: 500 }}>Title</label>
+              <input
+                placeholder="Item Title"
+                value={form.title}
+                onChange={(e) => setField("title", e.target.value)}
+                required
+              />
+            </div>
 
-      {msg && <p style={{ marginTop: 10 }}>{msg}</p>}
-
-      {loading ? (
-        <p>Loading...</p>
-      ) : (
-        <form onSubmit={onSubmit}>
-          <input
-            placeholder="Title"
-            value={form.title}
-            onChange={(e) => setField("title", e.target.value)}
-            style={{ width: "100%", marginBottom: 8 }}
-          />
-
-          <textarea
-            placeholder="Description"
-            value={form.description}
-            onChange={(e) => setField("description", e.target.value)}
-            style={{ width: "100%", marginBottom: 8, minHeight: 90 }}
-          />
-
-          <input
-            placeholder="Price"
-            value={form.price}
-            onChange={(e) => setField("price", e.target.value)}
-            style={{ width: "100%", marginBottom: 8 }}
-          />
-
-          <input
-            placeholder="Category"
-            value={form.category}
-            onChange={(e) => setField("category", e.target.value)}
-            style={{ width: "100%", marginBottom: 8 }}
-          />
-
-          <input
-            placeholder="Location"
-            value={form.location}
-            onChange={(e) => setField("location", e.target.value)}
-            style={{ width: "100%", marginBottom: 8 }}
-          />
-
-          <select
-            value={form.status}
-            onChange={(e) => setField("status", e.target.value)}
-            style={{ width: "100%", marginBottom: 12 }}
-          >
-            <option value="active">Active</option>
-            <option value="sold">Sold</option>
-          </select>
-
-          <div style={{ marginBottom: 12 }}>
-            <div style={{ marginBottom: 6, fontWeight: 600 }}>Image</div>
-
-            {currentImageUrl && !newImagePreviewUrl && (
-              <div style={{ marginBottom: 10 }}>
-                <div style={{ fontSize: 13, marginBottom: 6 }}>Current:</div>
-                <img
-                  src={currentImageUrl}
-                  alt="Current listing"
-                  style={{ maxWidth: "100%", border: "1px solid #ddd" }}
+            <div className="flex gap-md">
+              <div style={{ flex: 1 }}>
+                <label style={{ display: "block", marginBottom: "6px", fontWeight: 500 }}>Price (£)</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={form.price}
+                  onChange={(e) => setField("price", e.target.value)}
+                  required
                 />
               </div>
-            )}
-
-            {newImagePreviewUrl && (
-              <div style={{ marginBottom: 10 }}>
-                <div style={{ fontSize: 13, marginBottom: 6 }}>New (preview):</div>
-                <img
-                  src={newImagePreviewUrl}
-                  alt="New preview"
-                  style={{ maxWidth: "100%", border: "1px solid #ddd" }}
-                />
+              <div style={{ flex: 1 }}>
+                <label style={{ display: "block", marginBottom: "6px", fontWeight: 500 }}>Status</label>
+                <select
+                  value={form.status}
+                  onChange={(e) => setField("status", e.target.value)}
+                >
+                  <option value="active">Active</option>
+                  <option value="sold">Sold</option>
+                </select>
               </div>
-            )}
+            </div>
 
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setNewImageFile(e.target.files?.[0] || null)}
-            />
+            <div>
+              <label style={{ display: "block", marginBottom: "6px", fontWeight: 500 }}>Category</label>
+              <input
+                value={form.category}
+                onChange={(e) => setField("category", e.target.value)}
+              />
+            </div>
 
-            {newImageFile && (
-              <div style={{ marginTop: 8 }}>
+            <div>
+              <label style={{ display: "block", marginBottom: "6px", fontWeight: 500 }}>Location</label>
+              <input
+                value={form.location}
+                onChange={(e) => setField("location", e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: "block", marginBottom: "6px", fontWeight: 500 }}>Description</label>
+              <textarea
+                value={form.description}
+                onChange={(e) => setField("description", e.target.value)}
+                style={{ minHeight: "120px", resize: "vertical" }}
+                required
+              />
+            </div>
+
+            <div>
+              <label style={{ display: "block", marginBottom: "6px", fontWeight: 500 }}>Image</label>
+
+              <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", alignItems: "flex-start" }}>
+                {currentImageUrl && !newImagePreviewUrl && (
+                  <div style={{ marginBottom: 10 }}>
+                    <div style={{ fontSize: 13, marginBottom: 6, color: "var(--text-secondary)" }}>Current Image:</div>
+                    <img
+                      src={currentImageUrl}
+                      alt="Current"
+                      style={{ height: "100px", borderRadius: "var(--border-radius)", border: "1px solid var(--border-color)" }}
+                    />
+                  </div>
+                )}
+
+                {newImagePreviewUrl && (
+                  <div style={{ marginBottom: 10 }}>
+                    <div style={{ fontSize: 13, marginBottom: 6, color: "var(--text-secondary)" }}>New Image Preview:</div>
+                    <img
+                      src={newImagePreviewUrl}
+                      alt="Preview"
+                      style={{ height: "100px", borderRadius: "var(--border-radius)", border: "1px solid var(--border-color)" }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setNewImageFile(e.target.files?.[0] || null)}
+                style={{ marginTop: "8px" }}
+              />
+
+              {newImageFile && (
                 <button
                   type="button"
                   onClick={() => setNewImageFile(null)}
-                  style={{ marginRight: 8 }}
+                  style={{ marginTop: "8px", fontSize: "0.8rem", padding: "4px 8px", backgroundColor: "var(--secondary-color)" }}
                 >
-                  Remove new image
+                  Cancel new image
                 </button>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
 
-          <button type="submit" disabled={saving}>
-            {saving ? "Saving..." : "Save changes"}
-          </button>
-        </form>
-      )}
+            <button type="submit" disabled={saving} className="w-full mt-md">
+              {saving ? "Saving Changes..." : "Save Changes"}
+            </button>
+          </form>
+        )}
+
+        {msg && (
+          <div style={{
+            marginTop: "20px",
+            padding: "12px",
+            borderRadius: "var(--border-radius)",
+            backgroundColor: "#fee2e2",
+            color: "#b91c1c",
+            textAlign: "center"
+          }}>
+            {msg}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

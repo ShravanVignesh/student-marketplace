@@ -38,6 +38,8 @@ export default function MyListings() {
   }
 
   async function remove(id) {
+    if (!window.confirm("Are you sure you want to delete this listing?")) return;
+
     setMsg("");
     setDeletingId(id);
     try {
@@ -59,56 +61,77 @@ export default function MyListings() {
   }, []);
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2>My Listings</h2>
+    <div className="container" style={{ marginTop: "24px" }}>
+      <div className="flex items-center" style={{ justifyContent: "space-between", marginBottom: "24px" }}>
+        <h2>My Listings</h2>
+        <Link to="/create">
+          <button>+ Create New</button>
+        </Link>
+      </div>
 
-      <p>
-        <Link to="/listings">Browse</Link> | <Link to="/create">Create</Link>
-      </p>
-
-      {msg && <p>{msg}</p>}
+      {msg && <div className="card" style={{ color: "var(--danger-color)", textAlign: "center", padding: "16px", marginBottom: "24px" }}>{msg}</div>}
 
       {loading ? (
-        <p>Loading...</p>
+        <div style={{ textAlign: "center", padding: "40px", color: "var(--text-secondary)" }}>Loading your listings...</div>
       ) : listings.length === 0 ? (
-        <p>No listings yet</p>
+        <div className="card" style={{ textAlign: "center", padding: "40px" }}>
+          <h3>No listings yet</h3>
+          <p>You haven't posted any items for sale yet.</p>
+          <Link to="/create">Start Selling</Link>
+        </div>
       ) : (
-        listings.map((l) => {
-          const imgPath = Array.isArray(l.images) && l.images.length > 0 ? l.images[0] : "";
-          const img = fileUrl(imgPath);
+        <div className="listings-grid">
+          {listings.map((l) => {
+            const imgPath = Array.isArray(l.images) && l.images.length > 0 ? l.images[0] : "";
+            const img = fileUrl(imgPath);
 
-          return (
-            <div key={l._id} style={{ border: "1px solid #ddd", padding: 12, marginBottom: 12 }}>
-              {img && (
-                <img
-                  src={img}
-                  alt={l.title}
-                  style={{
-                    width: 320,
-                    height: "auto",
-                    display: "block",
-                    marginBottom: 10,
-                  }}
-                />
-              )}
+            return (
+              <div key={l._id} className="card listing-card" style={{ padding: 0 }}>
+                <div style={{ position: "relative" }}>
+                  {img ? (
+                    <img src={img} alt={l.title} className="listing-image" />
+                  ) : (
+                    <div className="listing-image flex items-center justify-center" style={{ color: "var(--text-secondary)", fontSize: "2rem" }}>
+                      📷
+                    </div>
+                  )}
+                  <div style={{
+                    position: "absolute", top: 10, right: 10,
+                    backgroundColor: l.status === 'sold' ? "var(--danger-color)" : "var(--success-color)", color: "white",
+                    padding: "4px 8px", borderRadius: "4px", fontSize: "0.8rem", fontWeight: "bold"
+                  }}>
+                    {l.status ? l.status.toUpperCase() : "ACTIVE"}
+                  </div>
+                </div>
 
-              <h3 style={{ margin: 0 }}>{l.title}</h3>
-              <p style={{ margin: "8px 0" }}>{l.description}</p>
-              <p style={{ margin: "8px 0" }}>£{l.price}</p>
-              <p style={{ margin: "8px 0" }}>
-                {l.category ? `Category: ${l.category}` : ""} {l.location ? ` | Location: ${l.location}` : ""}
-              </p>
+                <div className="listing-content flex flex-col">
+                  <h3 style={{ fontSize: "1.1rem", marginBottom: "8px", lineHeight: "1.3" }}>{l.title}</h3>
+                  <div className="listing-price" style={{ marginBottom: "12px" }}>£{l.price}</div>
 
-              <button onClick={() => nav(`/edit/${l._id}`)} style={{ marginRight: 10 }}>
-                Edit
-              </button>
+                  <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", marginBottom: "16px" }}>
+                    {l.category || "General"} | {l.location || "Campus"}
+                  </div>
 
-              <button onClick={() => remove(l._id)} disabled={deletingId === l._id}>
-                {deletingId === l._id ? "Deleting..." : "Delete"}
-              </button>
-            </div>
-          );
-        })
+                  <div className="flex gap-sm" style={{ marginTop: "auto" }}>
+                    <button
+                      onClick={() => nav(`/edit/${l._id}`)}
+                      style={{ flex: 1, backgroundColor: "var(--background-color)", color: "var(--text-color)", border: "1px solid var(--border-color)" }}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => remove(l._id)}
+                      disabled={deletingId === l._id}
+                      style={{ flex: 1, backgroundColor: "var(--danger-color)", opacity: deletingId === l._id ? 0.7 : 1 }}
+                    >
+                      {deletingId === l._id ? "..." : "Delete"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       )}
     </div>
   );

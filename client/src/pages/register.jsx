@@ -7,54 +7,92 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [msg, setMsg] = useState("");
+  const [loading, setLoading] = useState(false);
 
   async function onSubmit(e) {
     e.preventDefault();
     setMsg("");
+    setLoading(true);
 
     try {
       const res = await api.post("/api/auth/register", { name, email, password });
       setMsg(res.data.message || "Registered. Check your email to verify.");
     } catch (err) {
       setMsg(err.response?.data?.message || "Error");
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
-    <div style={{ padding: 20, maxWidth: 420 }}>
-      <h2>Register</h2>
+    <div className="auth-container">
+      <div className="card">
+        <div className="auth-header">
+          <h2>Create Account</h2>
+          <p>Join the student marketplace today</p>
+        </div>
 
-      <form onSubmit={onSubmit}>
-        <input
-          placeholder="Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          style={{ width: "100%", marginBottom: 8 }}
-        />
+        <form onSubmit={onSubmit} className="flex flex-col gap-md">
+          <div>
+            <label style={{ display: "block", marginBottom: "4px", fontWeight: 500 }}>Full Name</label>
+            <input
+              placeholder="e.g. John Doe"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+          </div>
 
-        <input
-          placeholder="Uni email (.ac.uk)"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          style={{ width: "100%", marginBottom: 8 }}
-        />
+          <div>
+            <label style={{ display: "block", marginBottom: "4px", fontWeight: 500 }}>University Email</label>
+            <input
+              placeholder="name@university.ac.uk"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <small style={{ color: "var(--text-secondary)", marginTop: "4px", display: "block" }}>
+              Must be a valid .ac.uk email address
+            </small>
+          </div>
 
-        <input
-          placeholder="Password (8+ chars)"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          style={{ width: "100%", marginBottom: 8 }}
-        />
+          <div>
+            <label style={{ display: "block", marginBottom: "4px", fontWeight: 500 }}>Password</label>
+            <input
+              placeholder="At least 8 characters"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={8}
+            />
+          </div>
 
-        <button type="submit">Create account</button>
-      </form>
+          <button type="submit" disabled={loading} className="w-full mt-md">
+            {loading ? "Creating Account..." : "Sign Up"}
+          </button>
+        </form>
 
-      {msg && <p style={{ marginTop: 12 }}>{msg}</p>}
+        {msg && (
+          <div className={`mt-md p-2 rounded ${msg.includes("Error") ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}
+            style={{
+              padding: "12px",
+              borderRadius: "var(--border-radius)",
+              backgroundColor: msg.toLowerCase().includes("error") ? "#fee2e2" : "#dcfce7",
+              color: msg.toLowerCase().includes("error") ? "#b91c1c" : "#15803d",
+              textAlign: "center"
+            }}>
+            {msg}
+          </div>
+        )}
 
-      <p style={{ marginTop: 16 }}>
-        Already have an account? <Link to="/login">Login</Link>
-      </p>
+        <div className="mt-md" style={{ textAlign: "center", borderTop: "1px solid var(--border-color)", paddingTop: "16px" }}>
+          <p style={{ marginBottom: 0 }}>
+            Already have an account? <Link to="/login" style={{ fontWeight: 600 }}>Login</Link>
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

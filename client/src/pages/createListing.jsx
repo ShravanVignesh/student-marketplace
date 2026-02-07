@@ -63,61 +63,97 @@ export default function CreateListing() {
   }
 
   return (
-    <div style={{ padding: 20, maxWidth: 520 }}>
-      <h2>Create Listing</h2>
-
-      <p>
-        <Link to="/listings">Back to listings</Link>
-      </p>
-
-      <form onSubmit={onSubmit}>
-        <input
-          placeholder="Title"
-          value={form.title}
-          onChange={(e) => setField("title", e.target.value)}
-          style={{ width: "100%", marginBottom: 8 }}
-        />
-
-        <textarea
-          placeholder="Description"
-          value={form.description}
-          onChange={(e) => setField("description", e.target.value)}
-          style={{ width: "100%", marginBottom: 8, minHeight: 90 }}
-        />
-
-        <input
-          placeholder="Price"
-          value={form.price}
-          onChange={(e) => setField("price", e.target.value)}
-          style={{ width: "100%", marginBottom: 8 }}
-        />
-
-        <input
-          placeholder="Category"
-          value={form.category}
-          onChange={(e) => setField("category", e.target.value)}
-          style={{ width: "100%", marginBottom: 8 }}
-        />
-
-        <input
-          placeholder="Location"
-          value={form.location}
-          onChange={(e) => setField("location", e.target.value)}
-          style={{ width: "100%", marginBottom: 12 }}
-        />
-
-        <div style={{ marginBottom: 12 }}>
-          <div style={{ marginBottom: 6 }}>Image (optional)</div>
-          <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files?.[0] || null)} />
-          {imageFile ? <div style={{ marginTop: 6, fontSize: 13 }}>{imageFile.name}</div> : null}
+    <div className="container" style={{ marginTop: "40px", marginBottom: "40px" }}>
+      <div className="card" style={{ maxWidth: "600px", margin: "0 auto" }}>
+        <div className="flex items-center" style={{ justifyContent: "space-between", marginBottom: "24px" }}>
+          <h2 style={{ margin: 0 }}>Create Listing</h2>
+          <Link to="/listings" style={{ fontSize: "0.9rem" }}>Cancel</Link>
         </div>
 
-        <button type="submit" disabled={loading}>
-          {loading ? "Posting..." : "Post"}
-        </button>
-      </form>
+        <form onSubmit={onSubmit} className="flex flex-col gap-md">
+          <div>
+            <label style={{ display: "block", marginBottom: "6px", fontWeight: 500 }}>Title</label>
+            <input
+              placeholder="What are you selling?"
+              value={form.title}
+              onChange={(e) => setField("title", e.target.value)}
+              required
+            />
+          </div>
 
-      {msg && <p style={{ marginTop: 12 }}>{msg}</p>}
+          <div>
+            <label style={{ display: "block", marginBottom: "6px", fontWeight: 500 }}>Price (£)</label>
+            <input
+              placeholder="0.00"
+              type="number"
+              min="0"
+              step="0.01"
+              value={form.price}
+              onChange={(e) => setField("price", e.target.value)}
+              required
+            />
+          </div>
+
+          <div>
+            <label style={{ display: "block", marginBottom: "6px", fontWeight: 500 }}>Category</label>
+            <input
+              placeholder="e.g. Textbooks, Electronics, Kitchenware"
+              value={form.category}
+              onChange={(e) => setField("category", e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label style={{ display: "block", marginBottom: "6px", fontWeight: 500 }}>Location</label>
+            <input
+              placeholder="e.g. Student Union, Library"
+              value={form.location}
+              onChange={(e) => setField("location", e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label style={{ display: "block", marginBottom: "6px", fontWeight: 500 }}>Description</label>
+            <textarea
+              placeholder="Describe the condition, reason for selling, etc."
+              value={form.description}
+              onChange={(e) => setField("description", e.target.value)}
+              style={{ minHeight: "120px", resize: "vertical" }}
+              required
+            />
+          </div>
+
+          <div>
+            <label style={{ display: "block", marginBottom: "6px", fontWeight: 500 }}>Image (Optional)</label>
+            <div style={{ border: "1px dashed var(--border-color)", padding: "20px", borderRadius: "var(--border-radius)", textAlign: "center" }}>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                style={{ border: "none", padding: "0" }}
+              />
+              {imageFile && <div style={{ marginTop: "10px", color: "var(--success-color)", fontWeight: 500 }}>Selected: {imageFile.name}</div>}
+            </div>
+          </div>
+
+          <button type="submit" disabled={loading} className="w-full mt-md" style={{ padding: "1rem" }}>
+            {loading ? "Posting Listing..." : "Post Listing"}
+          </button>
+        </form>
+
+        {msg && (
+          <div style={{
+            marginTop: "20px",
+            padding: "12px",
+            borderRadius: "var(--border-radius)",
+            backgroundColor: "#fee2e2",
+            color: "#b91c1c",
+            textAlign: "center"
+          }}>
+            {msg}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

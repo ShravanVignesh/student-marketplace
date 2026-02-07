@@ -31,8 +31,8 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // MongoDB connection
 mongoose
   .connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ Connected to MongoDB Atlas"))
-  .catch((err) => console.error("❌ MongoDB connection failed:", err));
+  .then(() => console.log(" Connected to MongoDB Atlas"))
+  .catch((err) => console.error("MongoDB connection failed:", err));
 
 // Basic route
 app.get("/", (req, res) => {
@@ -43,4 +43,4 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/listings", listingRoutes);
 
-app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

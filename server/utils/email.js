@@ -1,23 +1,36 @@
 const nodemailer = require("nodemailer");
 
-function makeTransport() {
+function smtpConfigured() {
   const host = process.env.SMTP_HOST;
-  const port = Number(process.env.SMTP_PORT || 587);
   const user = process.env.SMTP_USER;
   const pass = process.env.SMTP_PASS;
 
-  if (!host || !user || !pass) {
-    throw new Error("Missing SMTP env vars (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS)");
-  }
+  // treat placeholders as "not configured"
+  if (!host || !user || !pass) return false;
+  if (host.includes("your_smtp_") || user.includes("your_smtp_") || pass.includes("your_smtp_")) return false;
 
+  return true;
+}
+
+function makeTransport() {
   return nodemailer.createTransport({
-    host,
-    port,
-    auth: { user, pass },
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT || 587),
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
   });
 }
 
 async function sendVerificationEmail({ to, name, verifyUrl }) {
+  // MVP mode: if SMTP not configured, don't crash registration
+  if (!smtpConfigured()) {
+    console.log(" SMTP not configured. Skipping email send.");
+    console.log(" Verification URL (manual):", verifyUrl);
+    return;
+  }
+
   const transporter = makeTransport();
   const from = process.env.FROM_EMAIL || process.env.SMTP_USER;
 

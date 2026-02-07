@@ -60,84 +60,108 @@ export default function Listings() {
     : `${listings.length} ${listings.length === 1 ? "result" : "results"} found`;
 
   return (
-    <div style={{ padding: 20 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+    <div className="container" style={{ marginTop: "24px" }}>
+      <div className="flex items-center" style={{ justifyContent: "space-between", marginBottom: "24px" }}>
         <div>
-          <h2 style={{ margin: 0 }}>Listings</h2>
-          <div style={{ marginTop: 6, fontSize: 14 }}>{countText}</div>
+          <h2 style={{ margin: 0 }}>Browse Listings</h2>
+          <div style={{ marginTop: 4, color: "var(--text-secondary)" }}>{countText}</div>
         </div>
 
-        <Link to="/create">Create listing</Link>
+        <Link to="/create">
+          <button>+ Create Listing</button>
+        </Link>
       </div>
 
-      <div style={{ marginTop: 12, border: "1px solid #ddd", padding: 12 }}>
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <input
-            placeholder="Search (title or description)"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            style={{ minWidth: 260 }}
-          />
+      <div className="card" style={{ padding: "16px", marginBottom: "24px" }}>
+        <div className="flex gap-md" style={{ flexWrap: "wrap", alignItems: "center" }}>
+          <div style={{ flex: 1, minWidth: "200px" }}>
+            <input
+              placeholder="Search title or description..."
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+            />
+          </div>
 
-          <input
-            placeholder="Category (example: Electronics)"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            style={{ minWidth: 220 }}
-          />
+          <div style={{ width: "200px" }}>
+            <input
+              placeholder="Category (e.g. Textbooks)"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+            />
+          </div>
 
-          <select value={status} onChange={(e) => setStatus(e.target.value)}>
-            <option value="">Any status</option>
-            <option value="active">Active</option>
-            <option value="sold">Sold</option>
-          </select>
+          <div style={{ width: "150px" }}>
+            <select value={status} onChange={(e) => setStatus(e.target.value)}>
+              <option value="">Any Status</option>
+              <option value="active">Active</option>
+              <option value="sold">Sold</option>
+            </select>
+          </div>
 
-          <button onClick={clearFilters}>Clear</button>
-          <button onClick={load} disabled={loading}>
-            {loading ? "Loading..." : "Refresh"}
-          </button>
+          <div className="flex gap-sm">
+            <button onClick={load} disabled={loading} style={{ padding: "0.75rem 1rem" }}>
+              Search
+            </button>
+            <button onClick={clearFilters} style={{ backgroundColor: "var(--secondary-color)", padding: "0.75rem 1rem" }}>
+              Clear
+            </button>
+          </div>
         </div>
       </div>
 
-      {err && <p style={{ marginTop: 12 }}>{err}</p>}
+      {err && <div className="card" style={{ color: "var(--danger-color)", textAlign: "center", padding: "20px" }}>{err}</div>}
 
       {loading ? (
-        <p style={{ marginTop: 12 }}>Loading...</p>
+        <div style={{ textAlign: "center", padding: "40px", color: "var(--text-secondary)" }}>Loading listings...</div>
       ) : listings.length === 0 ? (
-        <p style={{ marginTop: 12 }}>No listings found.</p>
+        <div style={{ textAlign: "center", padding: "60px", color: "var(--text-secondary)", backgroundColor: "var(--card-bg)", borderRadius: "var(--border-radius)", border: "1px solid var(--border-color)" }}>
+          <h3>No listings found</h3>
+          <p>Try adjusting your search filters or create a new listing.</p>
+          <button onClick={clearFilters} style={{ backgroundColor: "var(--secondary-color)" }}>Clear Filters</button>
+        </div>
       ) : (
-        <div style={{ marginTop: 12 }}>
+        <div className="listings-grid">
           {listings.map((l) => {
-            const imgPath =
-              Array.isArray(l.images) && l.images.length > 0 ? l.images[0] : "";
+            const imgPath = Array.isArray(l.images) && l.images.length > 0 ? l.images[0] : "";
             const img = fileUrl(imgPath);
 
             return (
-              <div key={l._id} style={{ border: "1px solid #ddd", padding: 12, marginBottom: 12 }}>
-                {img && (
-                  <img
-                    src={img}
-                    alt={l.title}
-                    style={{
-                      width: 260,
-                      height: "auto",
-                      display: "block",
-                      marginBottom: 10,
-                    }}
-                  />
-                )}
-
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <h3 style={{ margin: 0 }}>{l.title}</h3>
-                  <strong>£{l.price}</strong>
+              <div key={l._id} className="card listing-card" style={{ padding: 0, overflow: "hidden" }}>
+                <div style={{ position: "relative" }}>
+                  {img ? (
+                    <img src={img} alt={l.title} className="listing-image" />
+                  ) : (
+                    <div className="listing-image flex items-center justify-center" style={{ color: "var(--text-secondary)", fontSize: "2rem" }}>
+                      📷
+                    </div>
+                  )}
+                  {l.status === 'sold' && (
+                    <div style={{
+                      position: "absolute", top: 10, right: 10,
+                      backgroundColor: "var(--danger-color)", color: "white",
+                      padding: "4px 8px", borderRadius: "4px", fontSize: "0.8rem", fontWeight: "bold"
+                    }}>
+                      SOLD
+                    </div>
+                  )}
                 </div>
 
-                <p>{l.description}</p>
+                <div className="listing-content flex flex-col">
+                  <div className="flex items-center" style={{ justifyContent: "space-between", marginBottom: "8px" }}>
+                    <div className="listing-price">£{l.price}</div>
+                    <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                      {l.category || "General"}
+                    </div>
+                  </div>
 
-                <div style={{ fontSize: 14 }}>
-                  <div>Status: {l.status || "active"}</div>
-                  <div>Category: {l.category || "None"}</div>
-                  <div>Location: {l.location || "None"}</div>
+                  <h3 style={{ fontSize: "1.1rem", marginBottom: "8px", lineHeight: "1.3" }}>{l.title}</h3>
+                  <p style={{ fontSize: "0.9rem", color: "var(--text-secondary)", flexGrow: 1, marginBottom: "16px", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                    {l.description}
+                  </p>
+
+                  <div style={{ paddingTop: "12px", borderTop: "1px solid var(--border-color)", fontSize: "0.8rem", color: "var(--text-secondary)" }}>
+                    📍 {l.location || "Campus"}
+                  </div>
                 </div>
               </div>
             );
