@@ -17,6 +17,7 @@ import ChatWidget from "./components/ChatWidget.jsx";
 
 import { AuthProvider, useAuth } from "./auth/AuthContext.jsx";
 import ProtectedRoute from "./auth/ProtectedRoute.jsx";
+import { ListingsCacheProvider } from "./contexts/ListingsCache.jsx";
 
 function NavBar() {
   const { user, loading, logout } = useAuth();
@@ -108,37 +109,39 @@ ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <AuthProvider>
       <BrowserRouter>
-        <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-          <NavBar />
-          <main style={{ flex: 1, paddingBottom: "40px" }}>
-            <Routes>
-              <Route path="/" element={<Home />} />
+        <ListingsCacheProvider>
+          <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+            <NavBar />
+            <main style={{ flex: 1, paddingBottom: "40px" }}>
+              <Routes>
+                <Route path="/" element={<Home />} />
 
-              <Route path="/register" element={<Register />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/verify" element={<Verify />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/verify" element={<Verify />} />
 
-              <Route path="/listings" element={<Listings />} />
-              <Route path="/listings/:id" element={<ListingDetail />} />
+                <Route path="/listings" element={<Listings />} />
+                <Route path="/listings/:id" element={<ListingDetail />} />
 
-              <Route element={<ProtectedRoute />}>
-                <Route path="/create" element={<CreateListing />} />
-                <Route path="/my-listings" element={<MyListings />} />
-                <Route path="/edit/:id" element={<EditListing />} />
-              </Route>
-            </Routes>
-          </main>
-          <footer style={{
-            textAlign: "center",
-            padding: "20px",
-            borderTop: "1px solid var(--border-color)",
-            color: "var(--text-secondary)",
-            fontSize: "0.875rem"
-          }}>
-            &copy; {new Date().getFullYear()} Student Marketplace. All rights reserved.
-          </footer>
-          <ChatWidget />
-        </div>
+                <Route element={<ProtectedRoute />}>
+                  <Route path="/create" element={<CreateListing />} />
+                  <Route path="/my-listings" element={<MyListings />} />
+                  <Route path="/edit/:id" element={<EditListing />} />
+                </Route>
+              </Routes>
+            </main>
+            <footer style={{
+              textAlign: "center",
+              padding: "20px",
+              borderTop: "1px solid var(--border-color)",
+              color: "var(--text-secondary)",
+              fontSize: "0.875rem"
+            }}>
+              &copy; {new Date().getFullYear()} Student Marketplace. All rights reserved.
+            </footer>
+            <ChatWidget />
+          </div>
+        </ListingsCacheProvider>
       </BrowserRouter>
     </AuthProvider>
   </React.StrictMode>

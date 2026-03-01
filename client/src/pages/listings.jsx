@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { api } from "../api.js";
 import { Link } from "react-router-dom";
+import { useListingsCache } from "../contexts/ListingsCache.jsx";
 
 export default function Listings() {
+  const cache = useListingsCache();
   const [listings, setListings] = useState([]);
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
@@ -27,23 +29,34 @@ export default function Listings() {
     return `${serverBase}${path}`;
   }
 
-  async function load() {
+  const load = useCallback(async (showSpinner = true) => {
     setErr("");
-    setLoading(true);
+    if (showSpinner) setLoading(true);
     try {
       const res = await api.get(`/api/listings${queryString}`);
-      setListings(res.data.listings || []);
+      const data = res.data.listings || [];
+      setListings(data);
+      cache.set(queryString, data);
     } catch (e) {
       setErr(e.response?.data?.message || "Failed to load listings");
     } finally {
       setLoading(false);
     }
-  }
+  }, [queryString, cache]);
 
   useEffect(() => {
+    // Check cache first — show instantly if available
+    const cached = cache.get(queryString);
+    if (cached) {
+      setListings(cached);
+      // Silently refresh in background (no spinner)
+      const t = setTimeout(() => load(false), 100);
+      return () => clearTimeout(t);
+    }
+    // No cache — full load with spinner
     const t = setTimeout(load, 300);
     return () => clearTimeout(t);
-  }, [queryString]);
+  }, [queryString, cache, load]);
 
   function clearFilters() {
     setQ("");
