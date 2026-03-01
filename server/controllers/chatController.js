@@ -56,6 +56,7 @@ exports.listConversations = async (req, res) => {
 
         const conversations = await Conversation.find({
             participants: userId,
+            lastMessage: { $ne: "" },
         })
             .populate("participants", "name email")
             .populate("listing", "title images price")

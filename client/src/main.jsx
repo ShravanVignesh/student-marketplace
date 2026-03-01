@@ -13,7 +13,7 @@ import ListingDetail from "./pages/listingDetail.jsx";
 import CreateListing from "./pages/createListing.jsx";
 import MyListings from "./pages/myListings.jsx";
 import EditListing from "./pages/editListing.jsx";
-import Chat from "./pages/chat.jsx";
+import ChatWidget from "./components/ChatWidget.jsx";
 
 import { AuthProvider, useAuth } from "./auth/AuthContext.jsx";
 import ProtectedRoute from "./auth/ProtectedRoute.jsx";
@@ -38,7 +38,6 @@ function NavBar() {
             <>
               <Link to="/create" className={isActive("/create")}>Sell Item</Link>
               <Link to="/my-listings" className={isActive("/my-listings")}>My Listings</Link>
-              <Link to="/chat" className={isActive("/chat")}>Messages</Link>
               <span style={{ color: "var(--text-secondary)", marginLeft: "8px" }}>|</span>
               <span style={{ fontWeight: 500 }}>{user.name}</span>
               <button onClick={logout} style={{ padding: "0.25rem 0.75rem", fontSize: "0.875rem", marginLeft: "8px" }}>Logout</button>
@@ -115,8 +114,6 @@ ReactDOM.createRoot(document.getElementById("root")).render(
                 <Route path="/create" element={<CreateListing />} />
                 <Route path="/my-listings" element={<MyListings />} />
                 <Route path="/edit/:id" element={<EditListing />} />
-                <Route path="/chat" element={<Chat />} />
-                <Route path="/chat/:conversationId" element={<Chat />} />
               </Route>
             </Routes>
           </main>
@@ -129,6 +126,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           }}>
             &copy; {new Date().getFullYear()} Student Marketplace. All rights reserved.
           </footer>
+          <ChatWidget />
         </div>
       </BrowserRouter>
     </AuthProvider>

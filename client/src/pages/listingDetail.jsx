@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { api } from "../api.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 
 export default function ListingDetail() {
     const { id } = useParams();
-    const navigate = useNavigate();
     const { user } = useAuth();
     const [listing, setListing] = useState(null);
     const [err, setErr] = useState("");
@@ -168,7 +167,14 @@ export default function ListingDetail() {
                                         listingId: listing._id,
                                         sellerId: owner._id,
                                     });
-                                    navigate(`/chat/${res.data.conversation._id}`);
+                                    window.dispatchEvent(
+                                        new CustomEvent("open-chat", {
+                                            detail: {
+                                                conversationId: res.data.conversation._id,
+                                                conversation: res.data.conversation,
+                                            },
+                                        })
+                                    );
                                 } catch (e) {
                                     console.error("Failed to start chat:", e);
                                 } finally {
