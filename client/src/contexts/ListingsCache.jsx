@@ -1,38 +1,42 @@
 import { createContext, useContext, useRef } from "react";
 
-const ListingsCacheContext = createContext(null);
+const PageCacheContext = createContext(null);
 
-export function ListingsCacheProvider({ children }) {
-    // useRef so the cache persists across renders without causing re-renders
-    const cache = useRef({ listings: null, query: "", timestamp: 0 });
+const STALE_MS = 60_000; // 1 minute
+
+export function PageCacheProvider({ children }) {
+    // Map of key -> { data, timestamp }
+    const cache = useRef({});
 
     return (
-        <ListingsCacheContext.Provider value={cache}>
+        <PageCacheContext.Provider value={cache}>
             {children}
-        </ListingsCacheContext.Provider>
+        </PageCacheContext.Provider>
     );
 }
 
-export function useListingsCache() {
-    const cacheRef = useContext(ListingsCacheContext);
-    if (!cacheRef) throw new Error("useListingsCache must be inside ListingsCacheProvider");
+export function usePageCache() {
+    const cacheRef = useContext(PageCacheContext);
+    if (!cacheRef) throw new Error("usePageCache must be inside PageCacheProvider");
 
-    const STALE_MS = 60_000; // 1 minute
-
-    function get(queryString) {
-        const c = cacheRef.current;
-        if (c.listings && c.query === queryString && Date.now() - c.timestamp < STALE_MS) {
-            return c.listings;
+    function get(key) {
+        const entry = cacheRef.current[key];
+        if (entry && Date.now() - entry.timestamp < STALE_MS) {
+            return entry.data;
         }
         return null;
     }
 
-    function set(queryString, listings) {
-        cacheRef.current = { listings, query: queryString, timestamp: Date.now() };
+    function set(key, data) {
+        cacheRef.current[key] = { data, timestamp: Date.now() };
     }
 
-    function invalidate() {
-        cacheRef.current = { listings: null, query: "", timestamp: 0 };
+    function invalidate(key) {
+        if (key) {
+            delete cacheRef.current[key];
+        } else {
+            cacheRef.current = {};
+        }
     }
 
     return { get, set, invalidate };

@@ -2,13 +2,16 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { api } from "../api.js";
 import { useAuth } from "../auth/AuthContext.jsx";
+import { usePageCache } from "../contexts/ListingsCache.jsx";
 
 export default function ListingDetail() {
     const { id } = useParams();
     const { user } = useAuth();
-    const [listing, setListing] = useState(null);
+    const cache = usePageCache();
+    const cacheKey = `detail:${id}`;
+    const [listing, setListing] = useState(() => cache.get(cacheKey) || null);
     const [err, setErr] = useState("");
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(!listing);
     const [activeImg, setActiveImg] = useState(0);
     const [chatLoading, setChatLoading] = useState(false);
 
@@ -57,10 +60,13 @@ export default function ListingDetail() {
 
     useEffect(() => {
         (async () => {
-            setLoading(true);
+            // If we already have cached data, don't show spinner — just refresh silently
+            const hasCached = !!listing;
+            if (!hasCached) setLoading(true);
             try {
                 const res = await api.get(`/api/listings/detail/${id}`);
                 setListing(res.data.listing);
+                cache.set(cacheKey, res.data.listing);
             } catch (e) {
                 setErr(e.response?.data?.message || "Failed to load listing");
             } finally {

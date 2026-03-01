@@ -1,13 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../api.js";
 import { Link, useNavigate } from "react-router-dom";
+import { usePageCache } from "../contexts/ListingsCache.jsx";
 
 export default function MyListings() {
   const nav = useNavigate();
+  const cache = usePageCache();
+  const cacheKey = "my-listings";
 
-  const [listings, setListings] = useState([]);
+  const [listings, setListings] = useState(() => cache.get(cacheKey) || []);
   const [msg, setMsg] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!listings.length);
   const [deletingId, setDeletingId] = useState("");
 
   const serverBase = useMemo(() => {
@@ -21,12 +24,14 @@ export default function MyListings() {
     return `${serverBase}${path}`;
   }
 
-  async function load() {
+  async function load(showSpinner = true) {
     setMsg("");
-    setLoading(true);
+    if (showSpinner) setLoading(true);
     try {
       const res = await api.get("/api/listings/mine");
-      setListings(res.data.listings || []);
+      const data = res.data.listings || [];
+      setListings(data);
+      cache.set(cacheKey, data);
     } catch (err) {
       const status = err.response?.status;
       const message = err.response?.data?.message || "Failed to load your listings";
@@ -44,6 +49,7 @@ export default function MyListings() {
     setDeletingId(id);
     try {
       await api.delete(`/api/listings/${id}`);
+      cache.invalidate(cacheKey);
       await load();
     } catch (err) {
       const status = err.response?.status;
@@ -60,6 +66,7 @@ export default function MyListings() {
     const updatingTo = currentStatus === "sold" ? "active" : "sold";
     try {
       await api.put(`/api/listings/${id}`, { status: updatingTo });
+      cache.invalidate(cacheKey);
       await load();
     } catch (err) {
       setMsg("Failed to update status.");
@@ -67,7 +74,14 @@ export default function MyListings() {
   }
 
   useEffect(() => {
-    load();
+    // If we have cached data, show it immediately and refresh silently
+    const cached = cache.get(cacheKey);
+    if (cached && cached.length > 0) {
+      setListings(cached);
+      load(false);
+    } else {
+      load();
+    }
   }, []);
 
   return (

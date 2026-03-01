@@ -17,7 +17,7 @@ import ChatWidget from "./components/ChatWidget.jsx";
 
 import { AuthProvider, useAuth } from "./auth/AuthContext.jsx";
 import ProtectedRoute from "./auth/ProtectedRoute.jsx";
-import { ListingsCacheProvider } from "./contexts/ListingsCache.jsx";
+import { PageCacheProvider } from "./contexts/ListingsCache.jsx";
 
 function NavBar() {
   const { user, loading, logout } = useAuth();
@@ -109,7 +109,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <AuthProvider>
       <BrowserRouter>
-        <ListingsCacheProvider>
+        <PageCacheProvider>
           <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
             <NavBar />
             <main style={{ flex: 1, paddingBottom: "40px" }}>
@@ -141,7 +141,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
             </footer>
             <ChatWidget />
           </div>
-        </ListingsCacheProvider>
+        </PageCacheProvider>
       </BrowserRouter>
     </AuthProvider>
   </React.StrictMode>
