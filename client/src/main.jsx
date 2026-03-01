@@ -9,6 +9,7 @@ import Login from "./pages/login.jsx";
 import Verify from "./pages/verify.jsx";
 
 import Listings from "./pages/listings.jsx";
+import ListingDetail from "./pages/listingDetail.jsx";
 import CreateListing from "./pages/createListing.jsx";
 import MyListings from "./pages/myListings.jsx";
 import EditListing from "./pages/editListing.jsx";
@@ -106,6 +107,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
               <Route path="/verify" element={<Verify />} />
 
               <Route path="/listings" element={<Listings />} />
+              <Route path="/listings/:id" element={<ListingDetail />} />
 
               <Route element={<ProtectedRoute />}>
                 <Route path="/create" element={<CreateListing />} />

@@ -126,44 +126,46 @@ export default function Listings() {
             const img = fileUrl(imgPath);
 
             return (
-              <div key={l._id} className="card listing-card" style={{ padding: 0, overflow: "hidden" }}>
-                <div style={{ position: "relative" }}>
-                  {img ? (
-                    <img src={img} alt={l.title} className="listing-image" />
-                  ) : (
-                    <div className="listing-image flex items-center justify-center" style={{ color: "var(--text-secondary)", fontSize: "2rem" }}>
-                      📷
-                    </div>
-                  )}
-                  {l.status === 'sold' && (
-                    <div style={{
-                      position: "absolute", top: 10, right: 10,
-                      backgroundColor: "var(--danger-color)", color: "white",
-                      padding: "4px 8px", borderRadius: "4px", fontSize: "0.8rem", fontWeight: "bold"
-                    }}>
-                      SOLD
-                    </div>
-                  )}
-                </div>
-
-                <div className="listing-content flex flex-col">
-                  <div className="flex items-center" style={{ justifyContent: "space-between", marginBottom: "8px" }}>
-                    <div className="listing-price">£{l.price}</div>
-                    <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                      {l.category || "General"}
-                    </div>
+              <Link key={l._id} to={`/listings/${l._id}`} className="listing-card-link">
+                <div className="card listing-card" style={{ padding: 0, overflow: "hidden" }}>
+                  <div style={{ position: "relative" }}>
+                    {img ? (
+                      <img src={img} alt={l.title} className="listing-image" />
+                    ) : (
+                      <div className="listing-image flex items-center justify-center" style={{ color: "var(--text-secondary)", fontSize: "2rem" }}>
+                        📷
+                      </div>
+                    )}
+                    {l.status === 'sold' && (
+                      <div style={{
+                        position: "absolute", top: 10, right: 10,
+                        backgroundColor: "var(--danger-color)", color: "white",
+                        padding: "4px 8px", borderRadius: "4px", fontSize: "0.8rem", fontWeight: "bold"
+                      }}>
+                        SOLD
+                      </div>
+                    )}
                   </div>
 
-                  <h3 style={{ fontSize: "1.1rem", marginBottom: "8px", lineHeight: "1.3" }}>{l.title}</h3>
-                  <p style={{ fontSize: "0.9rem", color: "var(--text-secondary)", flexGrow: 1, marginBottom: "16px", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-                    {l.description}
-                  </p>
+                  <div className="listing-content flex flex-col">
+                    <div className="flex items-center" style={{ justifyContent: "space-between", marginBottom: "8px" }}>
+                      <div className="listing-price">£{l.price}</div>
+                      <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                        {l.category || "General"}
+                      </div>
+                    </div>
 
-                  <div style={{ paddingTop: "12px", borderTop: "1px solid var(--border-color)", fontSize: "0.8rem", color: "var(--text-secondary)" }}>
-                    📍 {l.location || "Campus"}
+                    <h3 style={{ fontSize: "1.1rem", marginBottom: "8px", lineHeight: "1.3" }}>{l.title}</h3>
+                    <p style={{ fontSize: "0.9rem", color: "var(--text-secondary)", flexGrow: 1, marginBottom: "16px", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                      {l.description}
+                    </p>
+
+                    <div style={{ paddingTop: "12px", borderTop: "1px solid var(--border-color)", fontSize: "0.8rem", color: "var(--text-secondary)" }}>
+                      📍 {l.location || "Campus"}
+                    </div>
                   </div>
                 </div>
-              </div>
+              </Link>
             );
           })}
         </div>

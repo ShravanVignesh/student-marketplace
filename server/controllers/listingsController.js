@@ -68,7 +68,20 @@ exports.mine = async (req, res) => {
   }
 };
 
-// NEW: get single listing for edit page (owner only)
+// Public: get single listing detail (anyone can view)
+exports.getPublic = async (req, res) => {
+  try {
+    const listing = await Listing.findById(req.params.id)
+      .populate("owner", "name email");
+    if (!listing) return res.status(404).json({ message: "Listing not found" });
+
+    return res.json({ listing });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
+
+// Get single listing for edit page (owner only)
 exports.getOne = async (req, res) => {
   try {
     const listing = await Listing.findById(req.params.id);
