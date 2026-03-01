@@ -12,6 +12,38 @@ export default function ListingDetail() {
     const [activeImg, setActiveImg] = useState(0);
     const [chatLoading, setChatLoading] = useState(false);
 
+    // Swipe state
+    const [isDragging, setIsDragging] = useState(false);
+    const [touchStart, setTouchStart] = useState(null);
+    const [touchEnd, setTouchEnd] = useState(null);
+
+    const minSwipeDistance = 50;
+
+    const onTouchStart = (e) => {
+        setIsDragging(true);
+        setTouchEnd(null);
+        setTouchStart(e.targetTouches ? e.targetTouches[0].clientX : e.clientX);
+    };
+
+    const onTouchMove = (e) => {
+        if (!isDragging) return;
+        setTouchEnd(e.targetTouches ? e.targetTouches[0].clientX : e.clientX);
+    };
+
+    const onTouchEnd = () => {
+        setIsDragging(false);
+        if (!touchStart || !touchEnd) return;
+        const distance = touchStart - touchEnd;
+        const isLeftSwipe = distance > minSwipeDistance;
+        const isRightSwipe = distance < -minSwipeDistance;
+
+        if (isLeftSwipe) {
+            setActiveImg((prev) => (prev === listing.images.length - 1 ? 0 : prev + 1));
+        } else if (isRightSwipe) {
+            setActiveImg((prev) => (prev === 0 ? listing.images.length - 1 : prev - 1));
+        }
+    };
+
     const serverBase = useMemo(() => {
         const base = api?.defaults?.baseURL || "";
         return base.endsWith("/") ? base.slice(0, -1) : base;
@@ -79,13 +111,40 @@ export default function ListingDetail() {
             <div className="detail-layout">
                 {/* Left Column — Images */}
                 <div className="detail-images-col">
-                    <div className="detail-hero-wrapper">
+                    <div className="detail-hero-wrapper" style={{ position: "relative" }}>
                         {hasImages ? (
-                            <img
-                                src={fileUrl(images[activeImg])}
-                                alt={listing.title}
-                                className="detail-hero-image"
-                            />
+                            <div
+                                onTouchStart={onTouchStart}
+                                onTouchMove={onTouchMove}
+                                onTouchEnd={onTouchEnd}
+                                onMouseDown={onTouchStart}
+                                onMouseMove={onTouchMove}
+                                onMouseUp={onTouchEnd}
+                                onMouseLeave={() => {
+                                    if (isDragging) onTouchEnd();
+                                }}
+                                style={{ width: '100%', height: '100%', cursor: 'grab', overflow: 'hidden' }}
+                            >
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        height: '100%',
+                                        transition: 'transform 0.3s ease-out',
+                                        transform: `translateX(-${activeImg * 100}%)`,
+                                    }}
+                                >
+                                    {images.map((img, idx) => (
+                                        <div key={idx} style={{ flex: '0 0 100%', height: '100%' }}>
+                                            <img
+                                                src={fileUrl(img)}
+                                                alt={`${listing.title} ${idx + 1}`}
+                                                className="detail-hero-image"
+                                                style={{ userSelect: 'none', pointerEvents: 'none' }}
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                         ) : (
                             <div className="detail-hero-placeholder">
                                 <span>📷</span>
@@ -94,6 +153,26 @@ export default function ListingDetail() {
                         )}
                         {listing.status === "sold" && (
                             <div className="detail-sold-badge">SOLD</div>
+                        )}
+
+                        {/* Navigation Arrows */}
+                        {images.length > 1 && (
+                            <>
+                                <button
+                                    className="hero-arrow hero-arrow-left"
+                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setActiveImg((prev) => (prev === 0 ? images.length - 1 : prev - 1)); }}
+                                    aria-label="Previous image"
+                                >
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                                </button>
+                                <button
+                                    className="hero-arrow hero-arrow-right"
+                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setActiveImg((prev) => (prev === images.length - 1 ? 0 : prev + 1)); }}
+                                    aria-label="Next image"
+                                >
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                                </button>
+                            </>
                         )}
                     </div>
 

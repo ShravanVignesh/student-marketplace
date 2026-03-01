@@ -13,10 +13,12 @@ exports.create = async (req, res) => {
       return res.status(400).json({ message: "title, description, price are required" });
     }
 
-    // If file uploaded, store a public URL path
+    // If files uploaded, store public URL paths
     const images = [];
-    if (req.file) {
-      images.push(`/uploads/${req.file.filename}`);
+    if (req.files && req.files.length > 0) {
+      req.files.forEach(file => {
+        images.push(`/uploads/${file.filename}`);
+      });
     }
 
     const listing = await Listing.create({
@@ -39,7 +41,7 @@ exports.list = async (req, res) => {
   try {
     const { q } = req.query;
 
-    const filter = {};
+    const filter = { status: "active" };
     if (q) {
       filter.$or = [
         { title: { $regex: q, $options: "i" } },
@@ -105,7 +107,7 @@ exports.update = async (req, res) => {
       return res.status(403).json({ message: "Not allowed" });
     }
 
-    const { title, description, price, category, location, status } = req.body;
+    const { title, description, price, category, location, status, existingImages } = req.body;
 
     if (title !== undefined) listing.title = String(title).trim();
     if (description !== undefined) listing.description = String(description).trim();
@@ -127,9 +129,26 @@ exports.update = async (req, res) => {
       listing.status = s;
     }
 
-    // If new file uploaded, replace images with the new one
-    if (req.file) {
-      listing.images = [`/uploads/${req.file.filename}`];
+    // Handle existing images to keep
+    // ONly update images if existingImages or files were provided in request
+    if (existingImages !== undefined || (req.files && req.files.length > 0)) {
+      let updatedImages = [];
+      if (existingImages) {
+        // existingImages might be a single string or an array of strings
+        if (Array.isArray(existingImages)) {
+          updatedImages = [...existingImages];
+        } else {
+          updatedImages = [existingImages];
+        }
+      }
+
+      // append new files
+      if (req.files && req.files.length > 0) {
+        req.files.forEach(file => {
+          updatedImages.push(`/uploads/${file.filename}`);
+        });
+      }
+      listing.images = updatedImages;
     }
 
     await listing.save();

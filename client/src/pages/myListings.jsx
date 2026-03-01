@@ -56,6 +56,16 @@ export default function MyListings() {
     }
   }
 
+  async function toggleStatus(id, currentStatus) {
+    const updatingTo = currentStatus === "sold" ? "active" : "sold";
+    try {
+      await api.put(`/api/listings/${id}`, { status: updatingTo });
+      await load();
+    } catch (err) {
+      setMsg("Failed to update status.");
+    }
+  }
+
   useEffect(() => {
     load();
   }, []);
@@ -112,7 +122,23 @@ export default function MyListings() {
                     {l.category || "General"} | {l.location || "Campus"}
                   </div>
 
-                  <div className="flex gap-sm" style={{ marginTop: "auto" }}>
+                  <div className="flex gap-sm" style={{ marginTop: "auto", flexWrap: "wrap" }}>
+                    {l.status === 'active' && (
+                      <button
+                        onClick={() => toggleStatus(l._id, "active")}
+                        style={{ flex: "1 0 100%", backgroundColor: "var(--primary-color)", color: "white" }}
+                      >
+                        Mark as Sold
+                      </button>
+                    )}
+                    {l.status === 'sold' && (
+                      <button
+                        onClick={() => toggleStatus(l._id, "sold")}
+                        style={{ flex: "1 0 100%", backgroundColor: "var(--success-color)", color: "white" }}
+                      >
+                        Mark as Active
+                      </button>
+                    )}
                     <button
                       onClick={() => nav(`/edit/${l._id}`)}
                       style={{ flex: 1, backgroundColor: "var(--background-color)", color: "var(--text-color)", border: "1px solid var(--border-color)" }}

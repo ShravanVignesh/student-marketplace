@@ -41,14 +41,14 @@ router.get("/detail/:id", listings.getPublic);
 // protected
 router.get("/mine", requireAuth, listings.mine);
 
-// create listing with optional image upload (field name must be "image")
-router.post("/", requireAuth, upload.single("image"), listings.create);
+// create listing with optional image upload (field name must be "images", max 5)
+router.post("/", requireAuth, upload.array("images", 5), listings.create);
 
 // get one listing for edit page (owner only)
 router.get("/:id", requireAuth, listings.getOne);
 
-// update listing, optional image replace (field name must be "image")
-router.put("/:id", requireAuth, upload.single("image"), listings.update);
+// update listing, optional image replace (field name must be "images", max 5)
+router.put("/:id", requireAuth, upload.array("images", 5), listings.update);
 
 // delete listing
 router.delete("/:id", requireAuth, listings.remove);
