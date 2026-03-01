@@ -15,6 +15,9 @@ import MyListings from "./pages/myListings.jsx";
 import EditListing from "./pages/editListing.jsx";
 import SellerProfile from "./pages/sellerProfile.jsx";
 import ChatWidget from "./components/ChatWidget.jsx";
+import ToastContainer from "./components/Toast.jsx";
+import EditProfileModal from "./components/EditProfileModal.jsx";
+import { api } from "./api.js";
 
 import { AuthProvider, useAuth } from "./auth/AuthContext.jsx";
 import ProtectedRoute from "./auth/ProtectedRoute.jsx";
@@ -24,6 +27,7 @@ function NavBar() {
   const { user, loading, logout } = useAuth();
   const location = useLocation();
   const [unreadMsgCount, setUnreadMsgCount] = useState(0);
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   useEffect(() => {
     const handleUnread = (e) => setUnreadMsgCount(e.detail);
@@ -51,9 +55,27 @@ function NavBar() {
                 Messages
                 {unreadMsgCount > 0 && <span className="nav-unread-badge">{unreadMsgCount > 9 ? "9+" : unreadMsgCount}</span>}
               </a>
-              <span style={{ color: "var(--text-secondary)", marginLeft: "8px" }}>|</span>
-              <span style={{ fontWeight: 500 }}>{user.name}</span>
-              <button onClick={logout} style={{ padding: "0.25rem 0.75rem", fontSize: "0.875rem", marginLeft: "8px" }}>Logout</button>
+              <div className="nav-user-section" style={{ position: "relative" }}>
+                <div
+                  className="nav-avatar"
+                  style={{ cursor: "pointer", position: "relative", overflow: "hidden" }}
+                  onClick={() => setShowProfileModal(!showProfileModal)}
+                  title="Click to edit profile photo"
+                >
+                  {user.avatarUrl ? (
+                    <img
+                      src={user.avatarUrl.startsWith('http') ? user.avatarUrl : api.defaults.baseURL + user.avatarUrl}
+                      alt={user.name}
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
+                  ) : (
+                    user.name[0].toUpperCase()
+                  )}
+                </div>
+                <span className="nav-user-name">{user.name}</span>
+                <button onClick={logout} className="nav-logout-btn">Logout</button>
+                {showProfileModal && <EditProfileModal onClose={() => setShowProfileModal(false)} />}
+              </div>
             </>
           ) : (
             <>
@@ -161,6 +183,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
               &copy; {new Date().getFullYear()} Student Marketplace. All rights reserved.
             </footer>
             <ChatWidget />
+            <ToastContainer />
           </div>
         </PageCacheProvider>
       </BrowserRouter>

@@ -84,9 +84,17 @@ export default function SellerProfile() {
                     background: "linear-gradient(135deg, var(--primary-color), #7c3aed)",
                     color: "white", fontSize: "2rem", fontWeight: 700,
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    margin: "0 auto 16px"
+                    margin: "0 auto 16px", overflow: "hidden"
                 }}>
-                    {seller.name[0].toUpperCase()}
+                    {seller.avatarUrl ? (
+                        <img
+                            src={seller.avatarUrl.startsWith('http') ? seller.avatarUrl : api.defaults.baseURL + seller.avatarUrl}
+                            alt={seller.name}
+                            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                        />
+                    ) : (
+                        seller.name[0].toUpperCase()
+                    )}
                 </div>
                 <h2 style={{ margin: "0 0 4px", fontSize: "1.5rem" }}>{seller.name}</h2>
                 <p style={{ color: "var(--text-secondary)", margin: 0, fontSize: "0.9rem" }}>

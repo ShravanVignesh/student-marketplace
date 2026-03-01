@@ -72,13 +72,13 @@ exports.mine = async (req, res) => {
 exports.bySeller = async (req, res) => {
   try {
     const User = require("../models/user");
-    const seller = await User.findById(req.params.userId).select("name email createdAt");
+    const seller = await User.findById(req.params.userId).select("name email avatarUrl createdAt");
     if (!seller) return res.status(404).json({ message: "Seller not found" });
 
     const listings = await Listing.find({ owner: req.params.userId, status: "active" })
       .sort({ createdAt: -1 });
 
-    return res.json({ seller: { _id: seller._id, name: seller.name, memberSince: seller.createdAt }, listings });
+    return res.json({ seller: { _id: seller._id, name: seller.name, avatarUrl: seller.avatarUrl, memberSince: seller.createdAt }, listings });
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }
@@ -88,7 +88,7 @@ exports.bySeller = async (req, res) => {
 exports.getPublic = async (req, res) => {
   try {
     const listing = await Listing.findById(req.params.id)
-      .populate("owner", "name email");
+      .populate("owner", "name email avatarUrl");
     if (!listing) return res.status(404).json({ message: "Listing not found" });
 
     return res.json({ listing });

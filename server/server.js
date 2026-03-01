@@ -13,6 +13,8 @@ const { Server } = require("socket.io");
 const authRoutes = require("./routes/authRoutes");
 const listingRoutes = require("./routes/listingRoutes");
 const chatRoutes = require("./routes/chatRoutes");
+const uploadRoutes = require("./routes/uploadRoutes");
+const userRoutes = require("./routes/userRoutes");
 
 const Conversation = require("./models/conversation");
 const Message = require("./models/message");
@@ -58,6 +60,8 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/listings", listingRoutes);
 app.use("/api/chat", chatRoutes);
+app.use("/api/uploads", uploadRoutes);
+app.use("/api/users", userRoutes);
 
 // ─── HTTP + Socket.IO ───
 const httpServer = http.createServer(app);

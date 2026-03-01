@@ -229,8 +229,16 @@ export default function ListingDetail() {
                     {/* Seller Info */}
                     <Link to={`/seller/${owner._id}`} style={{ textDecoration: "none", color: "inherit" }}>
                         <div className="detail-seller-card" style={{ cursor: "pointer", transition: "box-shadow 0.2s ease" }}>
-                            <div className="detail-seller-avatar">
-                                {(owner.name || "?")[0].toUpperCase()}
+                            <div className="detail-seller-avatar" style={{ overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                {owner.avatarUrl ? (
+                                    <img
+                                        src={owner.avatarUrl.startsWith('http') ? owner.avatarUrl : api.defaults.baseURL + owner.avatarUrl}
+                                        alt={owner.name}
+                                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                    />
+                                ) : (
+                                    (owner.name || "?")[0].toUpperCase()
+                                )}
                             </div>
                             <div className="detail-seller-info">
                                 <h4>Seller</h4>
