@@ -16,6 +16,17 @@ export default function CreateListing() {
   const [imageFile, setImageFile] = useState(null);
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
+  const handleDrag = (e) => {
+    e.preventDefault(); e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") setDragActive(true);
+    else if (e.type === "dragleave") setDragActive(false);
+  };
+  const handleDrop = (e) => {
+    e.preventDefault(); e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) setImageFile(e.dataTransfer.files[0]);
+  };
 
   function setField(key, value) {
     setForm((p) => ({ ...p, [key]: value }));
@@ -61,95 +72,113 @@ export default function CreateListing() {
       setLoading(false);
     }
   }
-
   return (
-    <div className="container" style={{ marginTop: "40px", marginBottom: "40px" }}>
-      <div className="card" style={{ maxWidth: "600px", margin: "0 auto" }}>
-        <div className="flex items-center" style={{ justifyContent: "space-between", marginBottom: "24px" }}>
-          <h2 style={{ margin: 0 }}>Create Listing</h2>
-          <Link to="/listings" style={{ fontSize: "0.9rem" }}>Cancel</Link>
-        </div>
+    <div className="container" style={{ marginTop: "40px", marginBottom: "60px" }}>
+      <div className="page-header">
+        <h1>Sell an Item</h1>
+        <p>List your textbook, electronics, or anything else in seconds.</p>
+      </div>
 
+      <div className="form-card" style={{ maxWidth: "700px", margin: "0 auto" }}>
         <form onSubmit={onSubmit} className="flex flex-col gap-md">
           <div>
-            <label style={{ display: "block", marginBottom: "6px", fontWeight: 500 }}>Title</label>
+            <label style={{ display: "block", marginBottom: "8px", fontWeight: 600, color: "var(--text-color)" }}>Title</label>
             <input
               placeholder="What are you selling?"
               value={form.title}
               onChange={(e) => setField("title", e.target.value)}
               required
+              style={{ padding: "12px", fontSize: "1.05rem" }}
             />
           </div>
 
-          <div>
-            <label style={{ display: "block", marginBottom: "6px", fontWeight: 500 }}>Price (£)</label>
-            <input
-              placeholder="0.00"
-              type="number"
-              min="0"
-              step="0.01"
-              value={form.price}
-              onChange={(e) => setField("price", e.target.value)}
-              required
-            />
+          <div className="form-grid">
+            <div>
+              <label style={{ display: "block", marginBottom: "8px", fontWeight: 600, color: "var(--text-color)" }}>Price (£)</label>
+              <input
+                placeholder="0.00"
+                type="number"
+                min="0"
+                step="0.01"
+                value={form.price}
+                onChange={(e) => setField("price", e.target.value)}
+                required
+                style={{ padding: "12px", fontSize: "1.05rem" }}
+              />
+            </div>
+            <div>
+              <label style={{ display: "block", marginBottom: "8px", fontWeight: 600, color: "var(--text-color)" }}>Category</label>
+              <input
+                placeholder="e.g. Textbooks, Electronics"
+                value={form.category}
+                onChange={(e) => setField("category", e.target.value)}
+                style={{ padding: "12px", fontSize: "1.05rem" }}
+              />
+            </div>
           </div>
 
           <div>
-            <label style={{ display: "block", marginBottom: "6px", fontWeight: 500 }}>Category</label>
-            <input
-              placeholder="e.g. Textbooks, Electronics, Kitchenware"
-              value={form.category}
-              onChange={(e) => setField("category", e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label style={{ display: "block", marginBottom: "6px", fontWeight: 500 }}>Location</label>
+            <label style={{ display: "block", marginBottom: "8px", fontWeight: 600, color: "var(--text-color)" }}>Location</label>
             <input
               placeholder="e.g. Student Union, Library"
               value={form.location}
               onChange={(e) => setField("location", e.target.value)}
+              style={{ padding: "12px", fontSize: "1.05rem" }}
             />
           </div>
 
           <div>
-            <label style={{ display: "block", marginBottom: "6px", fontWeight: 500 }}>Description</label>
+            <label style={{ display: "block", marginBottom: "8px", fontWeight: 600, color: "var(--text-color)" }}>Description</label>
             <textarea
               placeholder="Describe the condition, reason for selling, etc."
               value={form.description}
               onChange={(e) => setField("description", e.target.value)}
-              style={{ minHeight: "120px", resize: "vertical" }}
+              style={{ minHeight: "140px", padding: "12px", fontSize: "1.05rem", resize: "vertical" }}
               required
             />
           </div>
 
           <div>
-            <label style={{ display: "block", marginBottom: "6px", fontWeight: 500 }}>Image (Optional)</label>
-            <div style={{ border: "1px dashed var(--border-color)", padding: "20px", borderRadius: "var(--border-radius)", textAlign: "center" }}>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-                style={{ border: "none", padding: "0" }}
-              />
-              {imageFile && <div style={{ marginTop: "10px", color: "var(--success-color)", fontWeight: 500 }}>Selected: {imageFile.name}</div>}
-            </div>
+            <label style={{ display: "block", marginBottom: "8px", fontWeight: 600, color: "var(--text-color)" }}>Image (Optional)</label>
+
+            {!imageFile ? (
+              <div
+                className={`file-upload-zone ${dragActive ? "dragover" : ""}`}
+                onDragEnter={handleDrag}
+                onDragLeave={handleDrag}
+                onDragOver={handleDrag}
+                onDrop={handleDrop}
+              >
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                  className="file-upload-input"
+                />
+                <div className="file-upload-icon">📁</div>
+                <div className="file-upload-text">Click to upload or drag and drop</div>
+                <div className="file-upload-hint">PNG, JPG, GIF up to 5MB</div>
+              </div>
+            ) : (
+              <div className="file-preview-container">
+                <img src={URL.createObjectURL(imageFile)} alt="Preview" className="file-preview-image" />
+                <button type="button" className="file-remove-btn" onClick={() => setImageFile(null)}>✕</button>
+              </div>
+            )}
           </div>
 
-          <button type="submit" disabled={loading} className="w-full mt-md" style={{ padding: "1rem" }}>
-            {loading ? "Posting Listing..." : "Post Listing"}
-          </button>
+          <div style={{ display: "flex", gap: "16px", marginTop: "24px", alignItems: "center" }}>
+            <Link to="/listings" style={{ flex: 1, textAlign: "center", padding: "14px", color: "var(--text-secondary)", fontWeight: 500, textDecoration: "none" }}>
+              Cancel
+            </Link>
+            <button type="submit" disabled={loading} className="btn-primary-large" style={{ flex: 2, margin: 0 }}>
+              {loading ? "Posting..." : "Post Listing"}
+            </button>
+          </div>
         </form>
 
         {msg && (
-          <div style={{
-            marginTop: "20px",
-            padding: "12px",
-            borderRadius: "var(--border-radius)",
-            backgroundColor: "#fee2e2",
-            color: "#b91c1c",
-            textAlign: "center"
-          }}>
+          <div style={{ marginTop: "24px", padding: "14px", borderRadius: "8px", backgroundColor: "#fee2e2", color: "#b91c1c", textAlign: "center", fontWeight: 500 }}>
             {msg}
           </div>
         )}

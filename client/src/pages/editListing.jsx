@@ -22,6 +22,18 @@ export default function EditListing() {
   const [currentImage, setCurrentImage] = useState("");
   const [newImageFile, setNewImageFile] = useState(null);
 
+  const [dragActive, setDragActive] = useState(false);
+  const handleDrag = (e) => {
+    e.preventDefault(); e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") setDragActive(true);
+    else if (e.type === "dragleave") setDragActive(false);
+  };
+  const handleDrop = (e) => {
+    e.preventDefault(); e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) setNewImageFile(e.dataTransfer.files[0]);
+  };
+
   function setField(key, value) {
     setForm((p) => ({ ...p, [key]: value }));
   }
@@ -132,30 +144,31 @@ export default function EditListing() {
   }
 
   return (
-    <div className="container" style={{ marginTop: "40px", marginBottom: "40px" }}>
-      <div className="card" style={{ maxWidth: "600px", margin: "0 auto" }}>
-        <div className="flex items-center" style={{ justifyContent: "space-between", marginBottom: "24px" }}>
-          <h2 style={{ margin: 0 }}>Edit Listing</h2>
-          <Link to="/my-listings" style={{ fontSize: "0.9rem" }}>Cancel</Link>
-        </div>
+    <div className="container" style={{ marginTop: "40px", marginBottom: "60px" }}>
+      <div className="page-header">
+        <h1>Edit Listing</h1>
+        <p>Update the details of your item.</p>
+      </div>
 
+      <div className="form-card" style={{ maxWidth: "700px", margin: "0 auto" }}>
         {loading ? (
           <div style={{ textAlign: "center", padding: "40px", color: "var(--text-secondary)" }}>Loading listing details...</div>
         ) : (
           <form onSubmit={onSubmit} className="flex flex-col gap-md">
             <div>
-              <label style={{ display: "block", marginBottom: "6px", fontWeight: 500 }}>Title</label>
+              <label style={{ display: "block", marginBottom: "8px", fontWeight: 600, color: "var(--text-color)" }}>Title</label>
               <input
                 placeholder="Item Title"
                 value={form.title}
                 onChange={(e) => setField("title", e.target.value)}
                 required
+                style={{ padding: "12px", fontSize: "1.05rem" }}
               />
             </div>
 
-            <div className="flex gap-md">
-              <div style={{ flex: 1 }}>
-                <label style={{ display: "block", marginBottom: "6px", fontWeight: 500 }}>Price (£)</label>
+            <div className="form-grid">
+              <div>
+                <label style={{ display: "block", marginBottom: "8px", fontWeight: 600, color: "var(--text-color)" }}>Price (£)</label>
                 <input
                   type="number"
                   min="0"
@@ -163,13 +176,15 @@ export default function EditListing() {
                   value={form.price}
                   onChange={(e) => setField("price", e.target.value)}
                   required
+                  style={{ padding: "12px", fontSize: "1.05rem" }}
                 />
               </div>
-              <div style={{ flex: 1 }}>
-                <label style={{ display: "block", marginBottom: "6px", fontWeight: 500 }}>Status</label>
+              <div>
+                <label style={{ display: "block", marginBottom: "8px", fontWeight: 600, color: "var(--text-color)" }}>Status</label>
                 <select
                   value={form.status}
                   onChange={(e) => setField("status", e.target.value)}
+                  style={{ padding: "12px", fontSize: "1.05rem", width: "100%", borderRadius: "8px", border: "1px solid var(--border-color)", backgroundColor: "white" }}
                 >
                   <option value="active">Active</option>
                   <option value="sold">Sold</option>
@@ -177,92 +192,99 @@ export default function EditListing() {
               </div>
             </div>
 
-            <div>
-              <label style={{ display: "block", marginBottom: "6px", fontWeight: 500 }}>Category</label>
-              <input
-                value={form.category}
-                onChange={(e) => setField("category", e.target.value)}
-              />
+            <div className="form-grid">
+              <div>
+                <label style={{ display: "block", marginBottom: "8px", fontWeight: 600, color: "var(--text-color)" }}>Category</label>
+                <input
+                  value={form.category}
+                  onChange={(e) => setField("category", e.target.value)}
+                  style={{ padding: "12px", fontSize: "1.05rem" }}
+                />
+              </div>
+              <div>
+                <label style={{ display: "block", marginBottom: "8px", fontWeight: 600, color: "var(--text-color)" }}>Location</label>
+                <input
+                  value={form.location}
+                  onChange={(e) => setField("location", e.target.value)}
+                  style={{ padding: "12px", fontSize: "1.05rem" }}
+                />
+              </div>
             </div>
 
             <div>
-              <label style={{ display: "block", marginBottom: "6px", fontWeight: 500 }}>Location</label>
-              <input
-                value={form.location}
-                onChange={(e) => setField("location", e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label style={{ display: "block", marginBottom: "6px", fontWeight: 500 }}>Description</label>
+              <label style={{ display: "block", marginBottom: "8px", fontWeight: 600, color: "var(--text-color)" }}>Description</label>
               <textarea
                 value={form.description}
                 onChange={(e) => setField("description", e.target.value)}
-                style={{ minHeight: "120px", resize: "vertical" }}
+                style={{ minHeight: "140px", padding: "12px", fontSize: "1.05rem", resize: "vertical" }}
                 required
               />
             </div>
 
             <div>
-              <label style={{ display: "block", marginBottom: "6px", fontWeight: 500 }}>Image</label>
+              <label style={{ display: "block", marginBottom: "8px", fontWeight: 600, color: "var(--text-color)" }}>Image</label>
 
-              <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", alignItems: "flex-start" }}>
-                {currentImageUrl && !newImagePreviewUrl && (
-                  <div style={{ marginBottom: 10 }}>
-                    <div style={{ fontSize: 13, marginBottom: 6, color: "var(--text-secondary)" }}>Current Image:</div>
-                    <img
-                      src={currentImageUrl}
-                      alt="Current"
-                      style={{ height: "100px", borderRadius: "var(--border-radius)", border: "1px solid var(--border-color)" }}
-                    />
-                  </div>
-                )}
-
-                {newImagePreviewUrl && (
-                  <div style={{ marginBottom: 10 }}>
-                    <div style={{ fontSize: 13, marginBottom: 6, color: "var(--text-secondary)" }}>New Image Preview:</div>
-                    <img
-                      src={newImagePreviewUrl}
-                      alt="Preview"
-                      style={{ height: "100px", borderRadius: "var(--border-radius)", border: "1px solid var(--border-color)" }}
-                    />
-                  </div>
-                )}
-              </div>
-
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => setNewImageFile(e.target.files?.[0] || null)}
-                style={{ marginTop: "8px" }}
-              />
-
-              {newImageFile && (
-                <button
-                  type="button"
-                  onClick={() => setNewImageFile(null)}
-                  style={{ marginTop: "8px", fontSize: "0.8rem", padding: "4px 8px", backgroundColor: "var(--secondary-color)" }}
+              {!newImageFile && !currentImageUrl ? (
+                <div
+                  className={`file-upload-zone ${dragActive ? "dragover" : ""}`}
+                  onDragEnter={handleDrag}
+                  onDragLeave={handleDrag}
+                  onDragOver={handleDrag}
+                  onDrop={handleDrop}
                 >
-                  Cancel new image
-                </button>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setNewImageFile(e.target.files?.[0] || null)}
+                    className="file-upload-input"
+                  />
+                  <div className="file-upload-icon">📁</div>
+                  <div className="file-upload-text">Click to upload or drag and drop</div>
+                  <div className="file-upload-hint">Replace current image with a new one</div>
+                </div>
+              ) : (
+                <div className="file-preview-container" style={{ width: "100%", textAlign: "center", border: "1px solid var(--border-color)", borderRadius: "var(--border-radius)", padding: "16px", backgroundColor: "#f8fafc" }}>
+                  <img src={newImagePreviewUrl || currentImageUrl} alt="Preview" className="file-preview-image" />
+
+                  <div style={{ marginTop: "16px" }}>
+                    {!newImageFile ? (
+                      <div
+                        className="file-upload-zone"
+                        style={{ padding: "16px", minHeight: "auto", marginTop: "16px" }}
+                        onDragEnter={handleDrag}
+                        onDragLeave={handleDrag}
+                        onDragOver={handleDrag}
+                        onDrop={handleDrop}
+                      >
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => setNewImageFile(e.target.files?.[0] || null)}
+                          className="file-upload-input"
+                        />
+                        <div style={{ fontWeight: 600, color: "var(--text-color)" }}>Click to replace image</div>
+                      </div>
+                    ) : (
+                      <button type="button" className="btn-primary-large" style={{ marginTop: 0, padding: "8px 16px", fontSize: "0.95rem", width: "auto" }} onClick={() => setNewImageFile(null)}>Cancel New Image</button>
+                    )}
+                  </div>
+                </div>
               )}
             </div>
 
-            <button type="submit" disabled={saving} className="w-full mt-md">
-              {saving ? "Saving Changes..." : "Save Changes"}
-            </button>
+            <div style={{ display: "flex", gap: "16px", marginTop: "24px", alignItems: "center" }}>
+              <Link to="/my-listings" style={{ flex: 1, textAlign: "center", padding: "14px", color: "var(--text-secondary)", fontWeight: 500, textDecoration: "none" }}>
+                Cancel
+              </Link>
+              <button type="submit" disabled={saving} className="btn-primary-large" style={{ flex: 2, margin: 0 }}>
+                {saving ? "Saving Changes..." : "Save Changes"}
+              </button>
+            </div>
           </form>
         )}
 
         {msg && (
-          <div style={{
-            marginTop: "20px",
-            padding: "12px",
-            borderRadius: "var(--border-radius)",
-            backgroundColor: "#fee2e2",
-            color: "#b91c1c",
-            textAlign: "center"
-          }}>
+          <div style={{ marginTop: "24px", padding: "14px", borderRadius: "8px", backgroundColor: "#fee2e2", color: "#b91c1c", textAlign: "center", fontWeight: 500 }}>
             {msg}
           </div>
         )}

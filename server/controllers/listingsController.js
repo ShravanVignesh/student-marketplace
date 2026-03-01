@@ -37,11 +37,9 @@ exports.create = async (req, res) => {
 
 exports.list = async (req, res) => {
   try {
-    const { q, category, status } = req.query;
+    const { q } = req.query;
 
     const filter = {};
-    if (status) filter.status = status;
-    if (category) filter.category = category;
     if (q) {
       filter.$or = [
         { title: { $regex: q, $options: "i" } },

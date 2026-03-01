@@ -8,17 +8,13 @@ export default function Listings() {
   const [loading, setLoading] = useState(false);
 
   const [q, setQ] = useState("");
-  const [category, setCategory] = useState("");
-  const [status, setStatus] = useState("");
 
   const queryString = useMemo(() => {
     const params = new URLSearchParams();
     if (q.trim()) params.set("q", q.trim());
-    if (category.trim()) params.set("category", category.trim());
-    if (status) params.set("status", status);
     const s = params.toString();
     return s ? `?${s}` : "";
-  }, [q, category, status]);
+  }, [q]);
 
   const serverBase = useMemo(() => {
     const base = api?.defaults?.baseURL || "";
@@ -51,8 +47,6 @@ export default function Listings() {
 
   function clearFilters() {
     setQ("");
-    setCategory("");
-    setStatus("");
   }
 
   const countText = loading
@@ -79,23 +73,8 @@ export default function Listings() {
               placeholder="Search title or description..."
               value={q}
               onChange={(e) => setQ(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && load()}
             />
-          </div>
-
-          <div style={{ width: "200px" }}>
-            <input
-              placeholder="Category (e.g. Textbooks)"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-            />
-          </div>
-
-          <div style={{ width: "150px" }}>
-            <select value={status} onChange={(e) => setStatus(e.target.value)}>
-              <option value="">Any Status</option>
-              <option value="active">Active</option>
-              <option value="sold">Sold</option>
-            </select>
           </div>
 
           <div className="flex gap-sm">
