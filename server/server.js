@@ -131,9 +131,10 @@ io.on("connection", (socket) => {
         text: text.trim(),
       });
 
-      // Update conversation lastMessage & updatedAt
+      // Update conversation lastMessage & updatedAt & revive for both users
       conversation.lastMessage = text.trim().slice(0, 100);
       conversation.updatedAt = new Date();
+      conversation.deletedBy = []; // Revive chat if it was deleted
       await conversation.save();
 
       // Populate sender info
@@ -148,6 +149,111 @@ io.on("connection", (socket) => {
       callback?.({ success: true, message: populated });
     } catch (err) {
       console.error("send-message error:", err.message);
+      callback?.({ error: err.message });
+    }
+  });
+
+  // Delete a message
+  socket.on("delete-message", async (data, callback) => {
+    try {
+      const { messageId } = data;
+      if (!messageId) return callback?.({ error: "messageId is required" });
+
+      const message = await Message.findById(messageId);
+      if (!message) return callback?.({ error: "Message not found" });
+
+      // Only the sender can delete
+      if (message.sender.toString() !== socket.userId) {
+        return callback?.({ error: "Not your message" });
+      }
+
+      const conversationId = message.conversation.toString();
+      await Message.findByIdAndDelete(messageId);
+
+      // Update conversation lastMessage
+      const lastMsg = await Message.findOne({ conversation: conversationId })
+        .sort({ createdAt: -1 });
+      await Conversation.findByIdAndUpdate(conversationId, {
+        lastMessage: lastMsg ? lastMsg.text.slice(0, 100) : "",
+      });
+
+      io.to(conversationId).emit("message-deleted", {
+        messageId,
+        conversationId,
+      });
+
+      callback?.({ success: true });
+    } catch (err) {
+      console.error("delete-message error:", err.message);
+      callback?.({ error: err.message });
+    }
+  });
+
+  // Typing indicators
+  socket.on("typing", ({ conversationId }) => {
+    socket.to(conversationId).emit("typing", { conversationId, sender: socket.userId });
+  });
+
+  socket.on("stop-typing", ({ conversationId }) => {
+    socket.to(conversationId).emit("stop-typing", { conversationId, sender: socket.userId });
+  });
+
+  // Mark messages as read
+  socket.on("mark-read", async ({ conversationId }) => {
+    try {
+      if (!conversationId) return;
+
+      // Update all messages in this conversation where sender is NOT the current user
+      await Message.updateMany(
+        { conversation: conversationId, sender: { $ne: socket.userId }, read: false },
+        { $set: { read: true } }
+      );
+
+      // Notify the other participants that messages were read
+      io.to(conversationId).emit("messages-read", { conversationId, readBy: socket.userId });
+    } catch (err) {
+      console.error("mark-read error:", err.message);
+    }
+  });
+
+  // Delete a conversation for the user
+  socket.on("delete-conversation", async (data, callback) => {
+    try {
+      const { conversationId } = data;
+      if (!conversationId) return callback?.({ error: "conversationId is required" });
+
+      const conversation = await Conversation.findById(conversationId);
+      if (!conversation) return callback?.({ error: "Conversation not found" });
+
+      const isParticipant = conversation.participants.some(
+        (p) => p.toString() === socket.userId
+      );
+      if (!isParticipant) return callback?.({ error: "Not a participant" });
+
+      // Soft-delete the conversation for this user (hide from list)
+      if (!conversation.deletedBy.includes(socket.userId)) {
+        conversation.deletedBy.push(socket.userId);
+      }
+
+      // Record clearing timestamp (hide message history)
+      const clearedIndex = conversation.clearedAt.findIndex(c => c.user.toString() === socket.userId);
+      if (clearedIndex === -1) {
+        conversation.clearedAt.push({ user: socket.userId, time: new Date() });
+      } else {
+        conversation.clearedAt[clearedIndex].time = new Date();
+      }
+
+      if (conversation.deletedBy.length === conversation.participants.length) {
+        // Both participants deleted — delete conversation and all messages
+        await Message.deleteMany({ conversation: conversationId });
+        await Conversation.findByIdAndDelete(conversationId);
+      } else {
+        await conversation.save();
+      }
+
+      callback?.({ success: true });
+    } catch (err) {
+      console.error("delete-conversation error:", err.message);
       callback?.({ error: err.message });
     }
   });

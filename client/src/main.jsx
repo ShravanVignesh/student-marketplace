@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route, Link, useLocation } from "react-router-dom";
 
@@ -21,6 +21,13 @@ import ProtectedRoute from "./auth/ProtectedRoute.jsx";
 function NavBar() {
   const { user, loading, logout } = useAuth();
   const location = useLocation();
+  const [unreadMsgCount, setUnreadMsgCount] = useState(0);
+
+  useEffect(() => {
+    const handleUnread = (e) => setUnreadMsgCount(e.detail);
+    window.addEventListener("chat-unread-count", handleUnread);
+    return () => window.removeEventListener("chat-unread-count", handleUnread);
+  }, []);
 
   const isActive = (path) => location.pathname === path ? "nav-link active" : "nav-link";
 
@@ -38,6 +45,10 @@ function NavBar() {
             <>
               <Link to="/create" className={isActive("/create")}>Sell Item</Link>
               <Link to="/my-listings" className={isActive("/my-listings")}>My Listings</Link>
+              <a href="#" className="nav-link" onClick={(e) => { e.preventDefault(); document.querySelector('.chatbox-fab')?.click(); }}>
+                Messages
+                {unreadMsgCount > 0 && <span className="nav-unread-badge">{unreadMsgCount > 9 ? "9+" : unreadMsgCount}</span>}
+              </a>
               <span style={{ color: "var(--text-secondary)", marginLeft: "8px" }}>|</span>
               <span style={{ fontWeight: 500 }}>{user.name}</span>
               <button onClick={logout} style={{ padding: "0.25rem 0.75rem", fontSize: "0.875rem", marginLeft: "8px" }}>Logout</button>

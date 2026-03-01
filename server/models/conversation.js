@@ -11,6 +11,15 @@ const conversationSchema = new mongoose.Schema(
             required: true,
         },
         lastMessage: { type: String, default: "" },
+        deletedBy: [
+            { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        ],
+        clearedAt: [
+            {
+                user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+                time: { type: Date, default: Date.now }
+            },
+        ],
     },
     { timestamps: true }
 );

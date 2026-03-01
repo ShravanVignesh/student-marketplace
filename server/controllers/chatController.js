@@ -57,6 +57,7 @@ exports.listConversations = async (req, res) => {
         const conversations = await Conversation.find({
             participants: userId,
             lastMessage: { $ne: "" },
+            deletedBy: { $ne: userId }
         })
             .populate("participants", "name email")
             .populate("listing", "title images price")
@@ -87,7 +88,16 @@ exports.getMessages = async (req, res) => {
             return res.status(403).json({ message: "Not a participant" });
         }
 
-        const messages = await Message.find({ conversation: conversationId })
+        // Find if this user previously cleared the conversation history
+        const clearedEntry = conversation.clearedAt.find(c => c.user.toString() === userId);
+        const query = { conversation: conversationId };
+
+        // If they did, only show messages from AFTER they cleared it
+        if (clearedEntry && clearedEntry.time) {
+            query.createdAt = { $gt: clearedEntry.time };
+        }
+
+        const messages = await Message.find(query)
             .populate("sender", "name")
             .sort({ createdAt: 1 });
 
