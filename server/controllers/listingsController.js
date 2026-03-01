@@ -17,7 +17,8 @@ exports.create = async (req, res) => {
     const images = [];
     if (req.files && req.files.length > 0) {
       req.files.forEach(file => {
-        images.push(`/uploads/${file.filename}`);
+        // multer-storage-cloudinary provides the full URL in file.path
+        images.push(file.path);
       });
     }
 
@@ -161,7 +162,7 @@ exports.update = async (req, res) => {
       // append new files
       if (req.files && req.files.length > 0) {
         req.files.forEach(file => {
-          updatedImages.push(`/uploads/${file.filename}`);
+          updatedImages.push(file.path);
         });
       }
       listing.images = updatedImages;

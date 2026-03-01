@@ -2,25 +2,33 @@ const express = require("express");
 const router = express.Router();
 const path = require("path");
 const multer = require("multer");
-const fs = require("fs");
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+const cloudinary = require("cloudinary").v2;
 
 const listings = require("../controllers/listingsController");
 const requireAuth = require("../middleware/requireAuth");
 
-// Ensure uploads folder exists
-const uploadsDir = path.join(__dirname, "..", "uploads");
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
+// Cloudinary config is already done globally or can wait, but we should make sure it has the env vars here too
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
-// Multer storage config (saves to server/uploads)
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir);
-  },
-  filename: (req, file, cb) => {
-    const safeOriginal = file.originalname.replace(/\s+/g, "_");
-    cb(null, `${Date.now()}_${safeOriginal}`);
+// Configure Multer to use Cloudinary Storage
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "student-marketplace-listings", // specific folder for listings
+    allowed_formats: ["jpg", "png", "webp", "jpeg"],
+    format: async (req, file) => {
+      const ext = path.extname(file.originalname).toLowerCase().replace('.', '');
+      return ext === 'jpeg' ? 'jpg' : ext;
+    },
+    public_id: (req, file) => {
+      const safeOriginal = file.originalname.replace(/\s+/g, "_").replace(/\.[^/.]+$/, "");
+      return `${Date.now()}_${safeOriginal}`;
+    },
   },
 });
 
