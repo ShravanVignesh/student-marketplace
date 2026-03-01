@@ -1,13 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { api } from "../api.js";
+import { useAuth } from "../auth/AuthContext.jsx";
 
 export default function ListingDetail() {
     const { id } = useParams();
+    const navigate = useNavigate();
+    const { user } = useAuth();
     const [listing, setListing] = useState(null);
     const [err, setErr] = useState("");
     const [loading, setLoading] = useState(true);
     const [activeImg, setActiveImg] = useState(0);
+    const [chatLoading, setChatLoading] = useState(false);
 
     const serverBase = useMemo(() => {
         const base = api?.defaults?.baseURL || "";
@@ -153,13 +157,32 @@ export default function ListingDetail() {
                     </div>
 
                     {/* CTA */}
-                    {owner.email && listing.status !== "sold" && (
-                        <a
-                            href={`mailto:${owner.email}?subject=Interested in: ${encodeURIComponent(listing.title)}`}
+                    {user && owner._id && owner._id !== user._id && listing.status !== "sold" && (
+                        <button
                             className="detail-contact-btn"
+                            disabled={chatLoading}
+                            onClick={async () => {
+                                setChatLoading(true);
+                                try {
+                                    const res = await api.post("/api/chat", {
+                                        listingId: listing._id,
+                                        sellerId: owner._id,
+                                    });
+                                    navigate(`/chat/${res.data.conversation._id}`);
+                                } catch (e) {
+                                    console.error("Failed to start chat:", e);
+                                } finally {
+                                    setChatLoading(false);
+                                }
+                            }}
                         >
-                            ✉️ Contact Seller
-                        </a>
+                            {chatLoading ? "Opening chat..." : "💬 Contact Seller"}
+                        </button>
+                    )}
+                    {!user && listing.status !== "sold" && (
+                        <Link to="/login" className="detail-contact-btn">
+                            💬 Login to Contact Seller
+                        </Link>
                     )}
 
                     {/* Timestamps */}
