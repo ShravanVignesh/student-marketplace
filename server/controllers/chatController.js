@@ -1,6 +1,7 @@
 const Conversation = require("../models/conversation");
 const Message = require("../models/message");
 const Listing = require("../models/listing");
+const mongoose = require("mongoose");
 
 // POST / — Start or get existing conversation
 exports.startConversation = async (req, res) => {
@@ -25,26 +26,43 @@ exports.startConversation = async (req, res) => {
         // Sort participant IDs for consistent lookup
         const participants = [buyerId, sellerId].sort();
 
+        // Force cast to ObjectIds to ensure the $all query works perfectly in Mongoose
+        const participantIds = participants.map(id => new mongoose.Types.ObjectId(id));
+
         // Find existing or create new
         let conversation = await Conversation.findOne({
-            participants: { $all: participants, $size: 2 },
+            participants: { $all: participantIds, $size: 2 },
             listing: listingId,
         });
 
         if (!conversation) {
-            conversation = await Conversation.create({
-                participants,
-                listing: listingId,
-            });
+            try {
+                conversation = await Conversation.create({
+                    participants,
+                    listing: listingId,
+                });
+            } catch (createErr) {
+                // Handle Mongoose race condition E11000 duplicate key
+                if (createErr.code === 11000) {
+                    conversation = await Conversation.findOne({
+                        participants: { $all: participantIds, $size: 2 },
+                        listing: listingId,
+                    });
+                    if (!conversation) throw createErr;
+                } else {
+                    throw createErr;
+                }
+            }
         }
 
         // Populate for response
         conversation = await Conversation.findById(conversation._id)
-            .populate("participants", "name email")
+            .populate("participants", "name email avatarUrl")
             .populate("listing", "title images price");
 
         return res.status(200).json({ conversation });
     } catch (err) {
+        console.error("Chat Start Error:", err);
         return res.status(500).json({ message: err.message });
     }
 };
