@@ -13,6 +13,7 @@ import ListingDetail from "./pages/listingDetail.jsx";
 import CreateListing from "./pages/createListing.jsx";
 import MyListings from "./pages/myListings.jsx";
 import EditListing from "./pages/editListing.jsx";
+import SellerProfile from "./pages/sellerProfile.jsx";
 import ChatWidget from "./components/ChatWidget.jsx";
 
 import { AuthProvider, useAuth } from "./auth/AuthContext.jsx";
@@ -73,6 +74,7 @@ function NavBar() {
 }
 
 function Home() {
+  const { user } = useAuth();
   return (
     <div className="container">
       <div className="card" style={{ marginTop: "40px", textAlign: "center", padding: "60px 20px" }}>
@@ -84,21 +86,39 @@ function Home() {
           <Link to="/listings">
             <button style={{ fontSize: "1.1rem", padding: "0.75rem 2rem" }}>Browse Listings</button>
           </Link>
-          <Link to="/register" style={{
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "0.75rem 2rem",
-            borderRadius: "var(--border-radius)",
-            border: "1px solid var(--border-color)",
-            color: "var(--text-color)",
-            textDecoration: "none",
-            backgroundColor: "white",
-            fontWeight: 500,
-            fontSize: "1.1rem"
-          }}>
-            Join Now
-          </Link>
+          {user ? (
+            <Link to="/create" style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "0.75rem 2rem",
+              borderRadius: "var(--border-radius)",
+              border: "1px solid var(--border-color)",
+              color: "var(--text-color)",
+              textDecoration: "none",
+              backgroundColor: "white",
+              fontWeight: 500,
+              fontSize: "1.1rem"
+            }}>
+              Sell Item
+            </Link>
+          ) : (
+            <Link to="/register" style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "0.75rem 2rem",
+              borderRadius: "var(--border-radius)",
+              border: "1px solid var(--border-color)",
+              color: "var(--text-color)",
+              textDecoration: "none",
+              backgroundColor: "white",
+              fontWeight: 500,
+              fontSize: "1.1rem"
+            }}>
+              Join Now
+            </Link>
+          )}
         </div>
       </div>
     </div>
@@ -122,6 +142,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
 
                 <Route path="/listings" element={<Listings />} />
                 <Route path="/listings/:id" element={<ListingDetail />} />
+                <Route path="/seller/:userId" element={<SellerProfile />} />
 
                 <Route element={<ProtectedRoute />}>
                   <Route path="/create" element={<CreateListing />} />

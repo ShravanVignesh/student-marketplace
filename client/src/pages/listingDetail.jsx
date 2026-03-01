@@ -227,18 +227,18 @@ export default function ListingDetail() {
                     </div>
 
                     {/* Seller Info */}
-                    <div className="detail-seller-card">
-                        <div className="detail-seller-avatar">
-                            {(owner.name || "?")[0].toUpperCase()}
+                    <Link to={`/seller/${owner._id}`} style={{ textDecoration: "none", color: "inherit" }}>
+                        <div className="detail-seller-card" style={{ cursor: "pointer", transition: "box-shadow 0.2s ease" }}>
+                            <div className="detail-seller-avatar">
+                                {(owner.name || "?")[0].toUpperCase()}
+                            </div>
+                            <div className="detail-seller-info">
+                                <h4>Seller</h4>
+                                <p className="detail-seller-name" style={{ color: "var(--primary-color)" }}>{owner.name || "Unknown"}</p>
+                                <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>Visit seller profile →</span>
+                            </div>
                         </div>
-                        <div className="detail-seller-info">
-                            <h4>Seller</h4>
-                            <p className="detail-seller-name">{owner.name || "Unknown"}</p>
-                            {owner.email && (
-                                <p className="detail-seller-email">{owner.email}</p>
-                            )}
-                        </div>
-                    </div>
+                    </Link>
 
                     {/* CTA */}
                     {user && owner._id && owner._id !== user._id && listing.status !== "sold" && (

@@ -68,6 +68,22 @@ exports.mine = async (req, res) => {
   }
 };
 
+// Public: get all active listings by a specific seller
+exports.bySeller = async (req, res) => {
+  try {
+    const User = require("../models/user");
+    const seller = await User.findById(req.params.userId).select("name email createdAt");
+    if (!seller) return res.status(404).json({ message: "Seller not found" });
+
+    const listings = await Listing.find({ owner: req.params.userId, status: "active" })
+      .sort({ createdAt: -1 });
+
+    return res.json({ seller: { _id: seller._id, name: seller.name, memberSince: seller.createdAt }, listings });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
+
 // Public: get single listing detail (anyone can view)
 exports.getPublic = async (req, res) => {
   try {

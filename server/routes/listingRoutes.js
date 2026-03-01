@@ -35,6 +35,9 @@ const upload = multer({ storage, fileFilter });
 // public browse
 router.get("/", listings.list);
 
+// public: get all active listings by a specific seller
+router.get("/seller/:userId", listings.bySeller);
+
 // public detail view (anyone can view a listing)
 router.get("/detail/:id", listings.getPublic);
 

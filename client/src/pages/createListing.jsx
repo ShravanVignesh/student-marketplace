@@ -176,9 +176,9 @@ export default function CreateListing() {
                 }}
                 className="file-upload-input"
               />
-              <div className="file-upload-icon" style={{ fontSize: "3rem", marginBottom: "12px", color: "var(--primary-color)", opacity: 0.8 }}>📁</div>
-              <div className="file-upload-text" style={{ fontWeight: 600, fontSize: "1.05rem", color: "var(--text-color)" }}>Click to upload or drag and drop (Max 5)</div>
-              <div className="file-upload-hint" style={{ marginTop: "8px", fontSize: "0.85rem", color: "var(--text-secondary)" }}>PNG, JPG, GIF up to 5MB total</div>
+              <div className="file-upload-icon" style={{ fontSize: "3rem", marginBottom: "12px", color: "var(--primary-color)", opacity: 0.8, pointerEvents: "none" }}>📁</div>
+              <div className="file-upload-text" style={{ fontWeight: 600, fontSize: "1.05rem", color: "var(--text-color)", pointerEvents: "none" }}>Click to upload or drag and drop (Max 5)</div>
+              <div className="file-upload-hint" style={{ marginTop: "8px", fontSize: "0.85rem", color: "var(--text-secondary)", pointerEvents: "none" }}>PNG, JPG, GIF up to 5MB total</div>
             </div>
 
             {imageFiles.length > 0 && (

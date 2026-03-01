@@ -1,12 +1,23 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { api } from "../api.js";
+import { usePageCache } from "../contexts/ListingsCache.jsx";
 
 export default function EditListing() {
   const { id } = useParams();
   const nav = useNavigate();
+  const cache = usePageCache();
+  const cacheKey = `edit:${id}`;
+  const cached = cache.get(cacheKey);
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState(() => cached ? {
+    title: cached.title || "",
+    description: cached.description || "",
+    price: String(cached.price ?? ""),
+    category: cached.category || "",
+    location: cached.location || "",
+    status: cached.status || "active",
+  } : {
     title: "",
     description: "",
     price: "",
@@ -16,10 +27,12 @@ export default function EditListing() {
   });
 
   const [msg, setMsg] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!cached);
   const [saving, setSaving] = useState(false);
 
-  const [currentImages, setCurrentImages] = useState([]);
+  const [currentImages, setCurrentImages] = useState(() =>
+    cached && Array.isArray(cached.images) ? cached.images : []
+  );
   const [newImageFiles, setNewImageFiles] = useState([]);
 
   const [dragActive, setDragActive] = useState(false);
@@ -58,7 +71,8 @@ export default function EditListing() {
   useEffect(() => {
     async function load() {
       setMsg("");
-      setLoading(true);
+      const hasCached = !!cached;
+      if (!hasCached) setLoading(true);
 
       try {
         const res = await api.get(`/api/listings/${id}`);
@@ -74,13 +88,13 @@ export default function EditListing() {
         });
 
         setCurrentImages(Array.isArray(l.images) ? l.images : []);
+        cache.set(cacheKey, l);
       } catch (err) {
         setMsg(err.response?.data?.message || "Failed to load listing");
       } finally {
         setLoading(false);
       }
     }
-
     load();
   }, [id]);
 
@@ -238,9 +252,9 @@ export default function EditListing() {
                     }}
                     className="file-upload-input"
                   />
-                  <div className="file-upload-icon" style={{ fontSize: "3rem", marginBottom: "12px", color: "var(--primary-color)", opacity: 0.8 }}>📁</div>
-                  <div className="file-upload-text" style={{ fontWeight: 600, fontSize: "1.05rem", color: "var(--text-color)" }}>Click to upload or drag and drop</div>
-                  <div className="file-upload-hint" style={{ marginTop: "8px", fontSize: "0.85rem", color: "var(--text-secondary)" }}>PNG, JPG, GIF up to 5MB (Max 5 images total)</div>
+                  <div className="file-upload-icon" style={{ fontSize: "3rem", marginBottom: "12px", color: "var(--primary-color)", opacity: 0.8, pointerEvents: "none" }}>📁</div>
+                  <div className="file-upload-text" style={{ fontWeight: 600, fontSize: "1.05rem", color: "var(--text-color)", pointerEvents: "none" }}>Click to upload or drag and drop</div>
+                  <div className="file-upload-hint" style={{ marginTop: "8px", fontSize: "0.85rem", color: "var(--text-secondary)", pointerEvents: "none" }}>PNG, JPG, GIF up to 5MB (Max 5 images total)</div>
                 </div>
               )}
 
