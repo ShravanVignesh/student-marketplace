@@ -19,26 +19,12 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: "student-marketplace-listings", // specific folder for listings
+    folder: "student-marketplace-listings",
     allowed_formats: ["jpg", "png", "webp", "jpeg"],
-    format: async (req, file) => {
-      const ext = path.extname(file.originalname).toLowerCase().replace('.', '');
-      return ext === 'jpeg' ? 'jpg' : ext;
-    },
-    public_id: (req, file) => {
-      const safeOriginal = file.originalname.replace(/\s+/g, "_").replace(/\.[^/.]+$/, "");
-      return `${Date.now()}_${safeOriginal}`;
-    },
   },
 });
 
-function fileFilter(req, file, cb) {
-  const ok = ["image/jpeg", "image/png", "image/webp", "image/jpg"].includes(file.mimetype);
-  if (!ok) return cb(new Error("Only image files are allowed (jpg, png, webp)"));
-  cb(null, true);
-}
-
-const upload = multer({ storage, fileFilter });
+const upload = multer({ storage });
 
 // public browse
 router.get("/", listings.list);

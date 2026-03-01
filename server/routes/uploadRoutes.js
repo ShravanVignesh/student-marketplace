@@ -3,7 +3,6 @@ const router = express.Router();
 const multer = require("multer");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("cloudinary").v2;
-const path = require("path");
 const requireAuth = require("../middleware/requireAuth");
 
 // Configure Cloudinary
@@ -19,29 +18,24 @@ const storage = new CloudinaryStorage({
   params: {
     folder: "student-marketplace-uploads",
     allowed_formats: ["jpg", "png", "webp", "jpeg"],
-    format: async (req, file) => {
-      const ext = path.extname(file.originalname).toLowerCase().replace('.', '');
-      return ext === 'jpeg' ? 'jpg' : ext;
-    },
-    public_id: (req, file) => `${Date.now()}-${Math.random().toString(16).slice(2)}`,
   },
 });
 
-function fileFilter(req, file, cb) {
-  const ok = ["image/jpeg", "image/png", "image/webp"].includes(file.mimetype);
-  if (!ok) return cb(new Error("Only jpg, png, webp allowed"));
-  cb(null, true);
-}
-
-const upload = multer({ storage, fileFilter, limits: { fileSize: 3 * 1024 * 1024 } });
+const upload = multer({ storage });
 
 // POST /api/uploads/image
-router.post("/image", requireAuth, upload.single("image"), (req, res) => {
-  if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+router.post("/image", requireAuth, (req, res, next) => {
+  upload.single("image")(req, res, (err) => {
+    if (err) {
+      console.error("Upload error:", err);
+      return res.status(400).json({ message: err.message || "Upload failed" });
+    }
+    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 
-  // Cloudinary returns the full URL in `req.file.path`
-  const url = req.file.path;
-  res.json({ url });
+    console.log("Cloudinary upload successful:", req.file.path);
+    const url = req.file.path;
+    res.json({ url });
+  });
 });
 
 module.exports = router;
