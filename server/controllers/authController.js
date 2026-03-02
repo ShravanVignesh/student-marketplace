@@ -45,9 +45,9 @@ async function register(req, res) {
 
     await VerificationToken.create({ userId: user._id, tokenHash, expiresAt });
 
-    // In Render production, headers are aggressively stripped, so force the production URL directly.
+    // Frontend is on Vercel; backend is on Render — always use the Vercel URL for email links.
     const appUrl = process.env.NODE_ENV === "production"
-      ? "https://student-marketplace-wx54.onrender.com"
+      ? "https://student-marketplace-beta.vercel.app"
       : "http://localhost:5173";
     const verifyUrl = `${appUrl}/verify?id=${user._id}&token=${token}`;
 
@@ -126,9 +126,9 @@ async function resendVerification(req, res) {
 
     await VerificationToken.create({ userId: user._id, tokenHash, expiresAt });
 
-    // In Render production, headers are aggressively stripped, so force the production URL directly.
+    // Frontend is on Vercel; backend is on Render — always use the Vercel URL for email links.
     const appUrl = process.env.NODE_ENV === "production"
-      ? "https://student-marketplace-wx54.onrender.com"
+      ? "https://student-marketplace-beta.vercel.app"
       : "http://localhost:5173";
     const verifyUrl = `${appUrl}/verify?id=${user._id}&token=${token}`;
 
