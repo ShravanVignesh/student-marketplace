@@ -24,6 +24,9 @@ const PORT = process.env.PORT || 3000;
 
 const allowedOrigins = [
   "http://localhost:5173",
+  "https://www.studentmarketplace.site",
+  "https://studentmarketplace.site",
+  "https://student-marketplace-beta.vercel.app", // keep for backwards compat
   process.env.APP_URL,
 ].filter(Boolean);
 

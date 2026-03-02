@@ -45,9 +45,9 @@ async function register(req, res) {
 
     await VerificationToken.create({ userId: user._id, tokenHash, expiresAt });
 
-    // Frontend is on Vercel; backend is on Render — always use the Vercel URL for email links.
+    // Frontend is on its own domain; always use it for email verification links.
     const appUrl = process.env.NODE_ENV === "production"
-      ? "https://student-marketplace-beta.vercel.app"
+      ? "https://www.studentmarketplace.site"
       : "http://localhost:5173";
     const verifyUrl = `${appUrl}/verify?id=${user._id}&token=${token}`;
 
@@ -126,9 +126,9 @@ async function resendVerification(req, res) {
 
     await VerificationToken.create({ userId: user._id, tokenHash, expiresAt });
 
-    // Frontend is on Vercel; backend is on Render — always use the Vercel URL for email links.
+    // Frontend is on its own domain; always use it for email verification links.
     const appUrl = process.env.NODE_ENV === "production"
-      ? "https://student-marketplace-beta.vercel.app"
+      ? "https://www.studentmarketplace.site"
       : "http://localhost:5173";
     const verifyUrl = `${appUrl}/verify?id=${user._id}&token=${token}`;
 
