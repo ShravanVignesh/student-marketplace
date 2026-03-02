@@ -25,29 +25,29 @@ exports.startConversation = async (req, res) => {
 
         // Sort participant IDs for consistent lookup
         const participants = [buyerId, sellerId].sort();
-
-        // Force cast to ObjectIds to ensure the $all query works perfectly in Mongoose
         const participantIds = participants.map(id => new mongoose.Types.ObjectId(id));
 
+        // Helper to reliably find an existing conversation (no $size to avoid mismatch)
+        async function findExisting() {
+            return Conversation.findOne({
+                participants: { $all: participantIds },
+                listing: new mongoose.Types.ObjectId(listingId),
+            });
+        }
+
         // Find existing or create new
-        let conversation = await Conversation.findOne({
-            participants: { $all: participantIds, $size: 2 },
-            listing: listingId,
-        });
+        let conversation = await findExisting();
 
         if (!conversation) {
             try {
                 conversation = await Conversation.create({
-                    participants,
+                    participants: participantIds,
                     listing: listingId,
                 });
             } catch (createErr) {
-                // Handle Mongoose race condition E11000 duplicate key
+                // Handle race condition: another request created it at the same time
                 if (createErr.code === 11000) {
-                    conversation = await Conversation.findOne({
-                        participants: { $all: participantIds, $size: 2 },
-                        listing: listingId,
-                    });
+                    conversation = await findExisting();
                     if (!conversation) throw createErr;
                 } else {
                     throw createErr;
