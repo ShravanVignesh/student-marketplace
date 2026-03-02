@@ -25,6 +25,8 @@ function makeTransport() {
     greetingTimeout: 10000,    // 10 seconds for SMTP greeting
     socketTimeout: 15000,      // 15 seconds for socket idle
     tls: { rejectUnauthorized: false },
+    logger: true,              // Log info to console
+    debug: true,               // Include SMTP traffic in logs
   });
 }
 
@@ -55,7 +57,8 @@ async function sendVerificationEmail({ to, name, verifyUrl }) {
     });
     console.log("✅ Verification email sent to", to, "messageId:", info.messageId);
   } catch (err) {
-    console.error("❌ Failed to send verification email to", to, ":", err.message);
+    console.error("❌ Failed to send verification email to", to);
+    console.error("FULL ERROR DETAILS:", err);
     // Don't throw - let registration succeed even if email fails
   }
 }
