@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { api } from "../api.js";
 import { useSearchParams, Link } from "react-router-dom";
 
@@ -6,12 +6,16 @@ export default function Verify() {
   const [params] = useSearchParams();
   const [msg, setMsg] = useState("Verifying your email...");
   const [status, setStatus] = useState("loading"); // loading, success, error
+  const hasFetched = useRef(false);
 
   useEffect(() => {
     const id = params.get("id");
     const token = params.get("token");
 
     async function run() {
+      if (hasFetched.current) return;
+      hasFetched.current = true;
+
       try {
         const res = await api.get(`/api/auth/verify?id=${id}&token=${token}`);
         setMsg(res.data.message);

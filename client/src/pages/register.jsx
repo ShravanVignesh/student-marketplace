@@ -8,6 +8,7 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
+  const [verifyUrl, setVerifyUrl] = useState(null);
 
   async function onSubmit(e) {
     e.preventDefault();
@@ -17,6 +18,9 @@ export default function Register() {
     try {
       const res = await api.post("/api/auth/register", { name, email, password });
       setMsg(res.data.message || "Registered. Check your email to verify.");
+      if (res.data.verifyUrl) {
+        setVerifyUrl(res.data.verifyUrl);
+      }
     } catch (err) {
       setMsg(err.response?.data?.message || "Error");
     } finally {
@@ -77,13 +81,27 @@ export default function Register() {
         {msg && (
           <div className={`mt-md p-2 rounded ${msg.includes("Error") ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}
             style={{
-              padding: "12px",
+              padding: "16px",
               borderRadius: "var(--border-radius)",
               backgroundColor: msg.toLowerCase().includes("error") ? "#fee2e2" : "#dcfce7",
               color: msg.toLowerCase().includes("error") ? "#b91c1c" : "#15803d",
               textAlign: "center"
             }}>
-            {msg}
+            <p style={{ margin: 0 }}>{msg}</p>
+            {verifyUrl && (
+              <div style={{ marginTop: "16px" }}>
+                <a
+                  href={verifyUrl}
+                  className="btn-primary"
+                  style={{ display: "inline-block", padding: "8px 16px", textDecoration: "none" }}
+                >
+                  ⚡ Dev Mode: Bypass Verification
+                </a>
+                <p style={{ fontSize: "0.8rem", marginTop: "8px", opacity: 0.8 }}>
+                  (Emails sent via Brevo from Outlook often fail DMARC. Click above to bypass.)
+                </p>
+              </div>
+            )}
           </div>
         )}
 
