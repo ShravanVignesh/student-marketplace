@@ -9,7 +9,12 @@ exports.startConversation = async (req, res) => {
         const { listingId, sellerId } = req.body;
         const buyerId = req.user.id;
 
+        console.log("=== START CONVERSATION ATTEMPT ===");
+        console.log("Body:", req.body);
+        console.log("User:", req.user);
+
         if (!listingId || !sellerId) {
+            console.log("Missing listingId or sellerId");
             return res.status(400).json({ message: "listingId and sellerId are required" });
         }
 
@@ -27,10 +32,11 @@ exports.startConversation = async (req, res) => {
         const participants = [buyerId, sellerId].sort();
         const participantIds = participants.map(id => new mongoose.Types.ObjectId(id));
 
-        // Helper to reliably find an existing conversation (no $size to avoid mismatch)
+        // Helper to reliably find an existing conversation
         async function findExisting() {
+            // Match the array EXACTLY as stored, avoiding $all which can fail edge cases
             return Conversation.findOne({
-                participants: { $all: participantIds },
+                participants: participantIds,
                 listing: new mongoose.Types.ObjectId(listingId),
             });
         }
@@ -55,6 +61,8 @@ exports.startConversation = async (req, res) => {
             }
         }
 
+        console.log("Conversation created or found:", conversation._id);
+
         // Populate for response
         conversation = await Conversation.findById(conversation._id)
             .populate("participants", "name email avatarUrl")
@@ -62,8 +70,9 @@ exports.startConversation = async (req, res) => {
 
         return res.status(200).json({ conversation });
     } catch (err) {
-        console.error("Chat Start Error:", err);
-        return res.status(500).json({ message: err.message });
+        console.log("=== CHAT START ERROR ===");
+        console.error(err);
+        return res.status(500).json({ message: err.message, stack: err.stack });
     }
 };
 
