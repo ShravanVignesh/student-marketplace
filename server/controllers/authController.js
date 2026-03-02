@@ -45,21 +45,10 @@ async function register(req, res) {
 
     await VerificationToken.create({ userId: user._id, tokenHash, expiresAt });
 
-    // Robustly determine the frontend URL
-    let appUrl = process.env.APP_URL;
-    if (!appUrl) {
-      if (req.get("origin")) {
-        appUrl = req.get("origin");
-      } else if (req.get("referer")) {
-        const url = new URL(req.get("referer"));
-        appUrl = url.origin;
-      } else {
-        // Fallback for production if all headers are shockingly stripped
-        appUrl = process.env.NODE_ENV === "production"
-          ? "https://student-marketplace.onrender.com" // Update base domain if needed
-          : "http://localhost:5173";
-      }
-    }
+    // In Render production, headers are aggressively stripped, so force the production URL directly.
+    const appUrl = process.env.NODE_ENV === "production"
+      ? "https://student-marketplace-9z8v.onrender.com"
+      : "http://localhost:5173";
     const verifyUrl = `${appUrl}/verify?id=${user._id}&token=${token}`;
 
     await sendVerificationEmail({ to: user.email, name: user.name, verifyUrl });
@@ -137,19 +126,10 @@ async function resendVerification(req, res) {
 
     await VerificationToken.create({ userId: user._id, tokenHash, expiresAt });
 
-    let appUrl = process.env.APP_URL;
-    if (!appUrl) {
-      if (req.get("origin")) {
-        appUrl = req.get("origin");
-      } else if (req.get("referer")) {
-        const url = new URL(req.get("referer"));
-        appUrl = url.origin;
-      } else {
-        appUrl = process.env.NODE_ENV === "production"
-          ? "https://student-marketplace.onrender.com"
-          : "http://localhost:5173";
-      }
-    }
+    // In Render production, headers are aggressively stripped, so force the production URL directly.
+    const appUrl = process.env.NODE_ENV === "production"
+      ? "https://student-marketplace-9z8v.onrender.com"
+      : "http://localhost:5173";
     const verifyUrl = `${appUrl}/verify?id=${user._id}&token=${token}`;
 
     await sendVerificationEmail({ to: user.email, name: user.name, verifyUrl });
