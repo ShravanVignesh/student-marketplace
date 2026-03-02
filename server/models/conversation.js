@@ -24,10 +24,6 @@ const conversationSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-// Prevent duplicate conversations for the same buyer-seller-listing combo
-conversationSchema.index(
-    { participants: 1, listing: 1 },
-    { unique: true }
-);
+
 
 module.exports = mongoose.model("Conversation", conversationSchema);
