@@ -8,7 +8,6 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
-  const [verifyUrl, setVerifyUrl] = useState(null);
 
   async function onSubmit(e) {
     e.preventDefault();
@@ -18,9 +17,6 @@ export default function Register() {
     try {
       const res = await api.post("/api/auth/register", { name, email, password });
       setMsg(res.data.message || "Registered. Check your email to verify.");
-      if (res.data.verifyUrl) {
-        setVerifyUrl(res.data.verifyUrl);
-      }
     } catch (err) {
       setMsg(err.response?.data?.message || "Error");
     } finally {
@@ -88,20 +84,6 @@ export default function Register() {
               textAlign: "center"
             }}>
             <p style={{ margin: 0 }}>{msg}</p>
-            {verifyUrl && (
-              <div style={{ marginTop: "16px" }}>
-                <a
-                  href={verifyUrl}
-                  className="btn-primary"
-                  style={{ display: "inline-block", padding: "8px 16px", textDecoration: "none" }}
-                >
-                  ⚡ Dev Mode: Bypass Verification
-                </a>
-                <p style={{ fontSize: "0.8rem", marginTop: "8px", opacity: 0.8 }}>
-                  (Emails sent via Brevo from Outlook often fail DMARC. Click above to bypass.)
-                </p>
-              </div>
-            )}
           </div>
         )}
 

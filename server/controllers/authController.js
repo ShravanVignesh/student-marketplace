@@ -50,9 +50,7 @@ async function register(req, res) {
 
     await sendVerificationEmail({ to: user.email, name: user.name, verifyUrl });
 
-    // Include the verifyUrl in the response for development purposes
-    // due to DMARC policies often dropping emails sent from outlook via third-party SMTPs.
-    return res.status(201).json({ message: "Registered. Please verify your email.", verifyUrl });
+    return res.status(201).json({ message: "Registered. Please verify your email." });
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }
@@ -130,7 +128,7 @@ async function resendVerification(req, res) {
 
     await sendVerificationEmail({ to: user.email, name: user.name, verifyUrl });
 
-    return res.json({ message: "Verification email sent", verifyUrl });
+    return res.json({ message: "Verification email sent" });
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }
