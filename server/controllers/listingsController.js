@@ -40,7 +40,7 @@ exports.create = async (req, res) => {
 
 exports.list = async (req, res) => {
   try {
-    const { q } = req.query;
+    const { q, location } = req.query;
 
     const filter = { status: "active" };
     if (q) {
@@ -48,6 +48,9 @@ exports.list = async (req, res) => {
         { title: { $regex: q, $options: "i" } },
         { description: { $regex: q, $options: "i" } },
       ];
+    }
+    if (location) {
+      filter.location = { $regex: location, $options: "i" };
     }
 
     const listings = await Listing.find(filter)

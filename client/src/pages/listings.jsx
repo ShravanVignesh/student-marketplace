@@ -10,13 +10,15 @@ export default function Listings() {
   const [loading, setLoading] = useState(false);
 
   const [q, setQ] = useState("");
+  const [locationQ, setLocationQ] = useState("");
 
   const queryString = useMemo(() => {
     const params = new URLSearchParams();
     if (q.trim()) params.set("q", q.trim());
+    if (locationQ.trim()) params.set("location", locationQ.trim());
     const s = params.toString();
     return s ? `?${s}` : "";
-  }, [q]);
+  }, [q, locationQ]);
 
   const cacheKey = `listings${queryString}`;
 
@@ -62,6 +64,7 @@ export default function Listings() {
 
   function clearFilters() {
     setQ("");
+    setLocationQ("");
   }
 
   const countText = loading
@@ -83,11 +86,20 @@ export default function Listings() {
 
       <div className="card" style={{ padding: "16px", marginBottom: "24px" }}>
         <div className="flex gap-md" style={{ flexWrap: "wrap", alignItems: "center" }}>
-          <div style={{ flex: 1, minWidth: "200px" }}>
+          <div style={{ flex: 2, minWidth: "200px" }}>
             <input
               placeholder="Search title or description..."
               value={q}
               onChange={(e) => setQ(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && load()}
+            />
+          </div>
+
+          <div style={{ flex: 1, minWidth: "150px" }}>
+            <input
+              placeholder="Campus or location..."
+              value={locationQ}
+              onChange={(e) => setLocationQ(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && load()}
             />
           </div>
