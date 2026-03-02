@@ -45,8 +45,21 @@ async function register(req, res) {
 
     await VerificationToken.create({ userId: user._id, tokenHash, expiresAt });
 
-    // Dynamically grab the frontend URL from the request origin so it works in both dev and production
-    const appUrl = req.headers.origin || process.env.APP_URL || "http://localhost:5173";
+    // Robustly determine the frontend URL
+    let appUrl = process.env.APP_URL;
+    if (!appUrl) {
+      if (req.get("origin")) {
+        appUrl = req.get("origin");
+      } else if (req.get("referer")) {
+        const url = new URL(req.get("referer"));
+        appUrl = url.origin;
+      } else {
+        // Fallback for production if all headers are shockingly stripped
+        appUrl = process.env.NODE_ENV === "production"
+          ? "https://student-marketplace.onrender.com" // Update base domain if needed
+          : "http://localhost:5173";
+      }
+    }
     const verifyUrl = `${appUrl}/verify?id=${user._id}&token=${token}`;
 
     await sendVerificationEmail({ to: user.email, name: user.name, verifyUrl });
@@ -124,7 +137,19 @@ async function resendVerification(req, res) {
 
     await VerificationToken.create({ userId: user._id, tokenHash, expiresAt });
 
-    const appUrl = req.headers.origin || process.env.APP_URL || "http://localhost:5173";
+    let appUrl = process.env.APP_URL;
+    if (!appUrl) {
+      if (req.get("origin")) {
+        appUrl = req.get("origin");
+      } else if (req.get("referer")) {
+        const url = new URL(req.get("referer"));
+        appUrl = url.origin;
+      } else {
+        appUrl = process.env.NODE_ENV === "production"
+          ? "https://student-marketplace.onrender.com"
+          : "http://localhost:5173";
+      }
+    }
     const verifyUrl = `${appUrl}/verify?id=${user._id}&token=${token}`;
 
     await sendVerificationEmail({ to: user.email, name: user.name, verifyUrl });
