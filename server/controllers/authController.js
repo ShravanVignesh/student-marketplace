@@ -45,7 +45,8 @@ async function register(req, res) {
 
     await VerificationToken.create({ userId: user._id, tokenHash, expiresAt });
 
-    const appUrl = process.env.APP_URL || "http://localhost:5173";
+    // Dynamically grab the frontend URL from the request origin so it works in both dev and production
+    const appUrl = req.headers.origin || process.env.APP_URL || "http://localhost:5173";
     const verifyUrl = `${appUrl}/verify?id=${user._id}&token=${token}`;
 
     await sendVerificationEmail({ to: user.email, name: user.name, verifyUrl });
@@ -123,7 +124,7 @@ async function resendVerification(req, res) {
 
     await VerificationToken.create({ userId: user._id, tokenHash, expiresAt });
 
-    const appUrl = process.env.APP_URL || "http://localhost:5173";
+    const appUrl = req.headers.origin || process.env.APP_URL || "http://localhost:5173";
     const verifyUrl = `${appUrl}/verify?id=${user._id}&token=${token}`;
 
     await sendVerificationEmail({ to: user.email, name: user.name, verifyUrl });
