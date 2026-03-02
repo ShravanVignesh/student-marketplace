@@ -47,7 +47,7 @@ async function register(req, res) {
 
     // In Render production, headers are aggressively stripped, so force the production URL directly.
     const appUrl = process.env.NODE_ENV === "production"
-      ? "https://student-marketplace-9z8v.onrender.com"
+      ? "https://student-marketplace-wx54.onrender.com"
       : "http://localhost:5173";
     const verifyUrl = `${appUrl}/verify?id=${user._id}&token=${token}`;
 
@@ -128,7 +128,7 @@ async function resendVerification(req, res) {
 
     // In Render production, headers are aggressively stripped, so force the production URL directly.
     const appUrl = process.env.NODE_ENV === "production"
-      ? "https://student-marketplace-9z8v.onrender.com"
+      ? "https://student-marketplace-wx54.onrender.com"
       : "http://localhost:5173";
     const verifyUrl = `${appUrl}/verify?id=${user._id}&token=${token}`;
 

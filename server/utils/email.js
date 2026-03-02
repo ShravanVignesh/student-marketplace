@@ -1,65 +1,45 @@
-const nodemailer = require("nodemailer");
+const brevo = require('@getbrevo/brevo');
 
-function smtpConfigured() {
-  const host = process.env.SMTP_HOST;
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS;
-
-  // treat placeholders as "not configured"
-  if (!host || !user || !pass) return false;
-  if (host.includes("your_smtp_") || user.includes("your_smtp_") || pass.includes("your_smtp_")) return false;
-
-  return true;
-}
-
-function makeTransport() {
-  return nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT || 587),
-    secure: Number(process.env.SMTP_PORT) === 465, // true for 465, false for other ports
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-    connectionTimeout: 10000,  // 10 seconds to connect
-    greetingTimeout: 10000,    // 10 seconds for SMTP greeting
-    socketTimeout: 15000,      // 15 seconds for socket idle
-    tls: { rejectUnauthorized: false },
-    logger: true,              // Log info to console
-    debug: true,               // Include SMTP traffic in logs
-  });
+function emailConfigured() {
+  return !!process.env.BREVO_API_KEY;
 }
 
 async function sendVerificationEmail({ to, name, verifyUrl }) {
-  // MVP mode: if SMTP not configured, don't crash registration
-  if (!smtpConfigured()) {
-    console.log(" SMTP not configured. Skipping email send.");
+  if (!emailConfigured()) {
+    console.log(" Brevo not configured. Skipping email send.");
     console.log(" Verification URL (manual):", verifyUrl);
     return;
   }
 
-  const transporter = makeTransport();
-  const from = process.env.FROM_EMAIL || process.env.SMTP_USER;
+  const defaultClient = brevo.ApiClient.instance;
+  const apiKey = defaultClient.authentications['api-key'];
+  apiKey.apiKey = process.env.BREVO_API_KEY;
+
+  const apiInstance = new brevo.TransactionalEmailsApi();
+  const sendSmtpEmail = new brevo.SendSmtpEmail();
+
+  sendSmtpEmail.subject = "Verify your student marketplace account";
+  sendSmtpEmail.htmlContent = `
+    <div style="font-family: Arial, sans-serif; line-height: 1.5;">
+      <h2>Hi ${name},</h2>
+      <p>Please verify your email to activate your account.</p>
+      <p><a href="${verifyUrl}">Verify my account</a></p>
+      <p>If you did not create this account, you can ignore this email.</p>
+    </div>
+  `;
+  sendSmtpEmail.sender = {
+    name: "Student Marketplace",
+    email: process.env.FROM_EMAIL || "no-reply@studentmarketplace.com"
+  };
+  sendSmtpEmail.to = [{ email: to, name }];
 
   try {
-    const info = await transporter.sendMail({
-      from,
-      to,
-      subject: "Verify your student marketplace account",
-      html: `
-        <div style="font-family: Arial, sans-serif; line-height: 1.5;">
-          <h2>Hi ${name},</h2>
-          <p>Please verify your email to activate your account.</p>
-          <p><a href="${verifyUrl}">Verify my account</a></p>
-          <p>If you did not create this account, you can ignore this email.</p>
-        </div>
-      `,
-    });
-    console.log("✅ Verification email sent to", to, "messageId:", info.messageId);
-  } catch (err) {
-    console.error("❌ Failed to send verification email to", to);
-    console.error("FULL ERROR DETAILS:", err);
-    // Don't throw - let registration succeed even if email fails
+    const data = await apiInstance.sendTransacEmail(sendSmtpEmail);
+    console.log("✅ Brevo API email sent successfully to", to, "messageId:", data.messageId);
+  } catch (error) {
+    console.error("❌ Failed to send Brevo verification email to", to);
+    // Log the actual response body from Brevo if available
+    console.error("BREVO ERROR DETAILS:", error.response?.text || error.message);
   }
 }
 
