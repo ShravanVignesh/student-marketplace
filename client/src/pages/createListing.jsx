@@ -196,11 +196,11 @@ export default function CreateListing() {
               )}
             </div>
 
-            <div style={{ display: "flex", gap: "16px", marginTop: "24px", justifyContent: "flex-end" }}>
-              <Link to="/listings" className="btn-secondary" style={{ padding: "12px 24px", textDecoration: "none" }}>
+            <div style={{ display: "flex", gap: "16px", marginTop: "32px", justifyContent: "space-between", alignItems: "center" }}>
+              <Link to="/listings" style={{ color: "#64748b", textDecoration: "none", fontSize: "0.95rem", fontWeight: 500 }}>
                 Cancel
               </Link>
-              <button type="submit" disabled={loading} className="btn-primary-large" style={{ margin: 0, padding: "12px 32px", borderRadius: "8px", flex: "none" }}>
+              <button type="submit" disabled={loading} className="btn-primary-large" style={{ margin: 0, padding: "12px 32px", borderRadius: "8px" }}>
                 {loading ? "Posting..." : "Post listing"}
               </button>
             </div>
@@ -261,12 +261,9 @@ export default function CreateListing() {
             <ul className="tips-list">
               <li>
                 <div className="tip-bullet">📍</div>
-                <span>Meet in public canpus locations.</span>
+                <span>Meet in public campus locations.</span>
               </li>
-              <li>
-                <div className="tip-bullet">✅</div>
-                <span>Only trade with verified .ac.uk students.</span>
-              </li>
+
               <li>
                 <div className="tip-bullet">💬</div>
                 <span>Keep all communications inside the app.</span>
