@@ -1693,8 +1693,6 @@ button {
 .home-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 64px;
-  /* Space between major sections */
 }
 
 /* --- Create Listing: Two-Column Live Preview Layout --- */
@@ -2051,8 +2049,9 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin: 0 !important;
   padding: 80px 5%;
-  background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
+  background: linear-gradient(180deg, #eef2ff 0%, #e0e7ff 100%);
   position: relative;
   overflow: hidden;
   min-height: 80vh;
@@ -2204,11 +2203,10 @@ button {
 
 /* Features Section */
 .features-section {
+  margin: 0 !important;
   padding: 80px 0;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  background: linear-gradient(180deg, #e0e7ff 0%, #f8fafc 100%);
   border-bottom: 1px solid var(--border-color);
-  border-top: 1px solid rgba(226, 232, 240, 0.5);
-  margin-top: 20px;
 }
 
 .features-grid {
