@@ -28,6 +28,7 @@ function NavBar() {
   const location = useLocation();
   const [unreadMsgCount, setUnreadMsgCount] = useState(0);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleUnread = (e) => setUnreadMsgCount(e.detail);
@@ -37,21 +38,41 @@ function NavBar() {
 
   const isActive = (path) => location.pathname === path ? "nav-link active" : "nav-link";
 
+  const closeMenu = () => setIsMobileMenuOpen(false);
+
   return (
     <nav className="navbar">
       <div className="container navbar-container">
-        <Link to="/" className="nav-brand">Student Marketplace</Link>
+        <Link to="/" className="nav-brand" onClick={closeMenu}>Student Marketplace</Link>
 
-        <div className="nav-links">
-          <Link to="/listings" className={isActive("/listings")}>Browse</Link>
+        {/* Hamburger Menu Button */}
+        <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            {isMobileMenuOpen ? (
+              <>
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </>
+            ) : (
+              <>
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+              </>
+            )}
+          </svg>
+        </button>
+
+        <div className={`nav-links ${isMobileMenuOpen ? 'open' : ''}`}>
+          <Link to="/listings" className={isActive("/listings")} onClick={closeMenu}>Browse</Link>
 
           {loading ? (
             <span className="text-secondary">Loading...</span>
           ) : user ? (
             <>
-              <Link to="/create" className={isActive("/create")}>Sell Item</Link>
-              <Link to="/my-listings" className={isActive("/my-listings")}>My Listings</Link>
-              <a href="#" className="nav-link" onClick={(e) => { e.preventDefault(); document.querySelector('.chatbox-fab')?.click(); }}>
+              <Link to="/create" className={isActive("/create")} onClick={closeMenu}>Sell Item</Link>
+              <Link to="/my-listings" className={isActive("/my-listings")} onClick={closeMenu}>My Listings</Link>
+              <a href="#" className="nav-link" onClick={(e) => { e.preventDefault(); closeMenu(); document.querySelector('.chatbox-fab')?.click(); }}>
                 Messages
                 {unreadMsgCount > 0 && <span className="nav-unread-badge">{unreadMsgCount > 9 ? "9+" : unreadMsgCount}</span>}
               </a>
@@ -73,14 +94,14 @@ function NavBar() {
                   )}
                 </div>
                 <span className="nav-user-name">{user.name}</span>
-                <button onClick={logout} className="nav-logout-btn">Logout</button>
+                <button onClick={() => { logout(); closeMenu(); }} className="nav-logout-btn">Logout</button>
                 {showProfileModal && <EditProfileModal onClose={() => setShowProfileModal(false)} />}
               </div>
             </>
           ) : (
             <>
-              <Link to="/login" className={isActive("/login")}>Login</Link>
-              <Link to="/register" className={`button ${isActive("/register")}`} style={{
+              <Link to="/login" className={isActive("/login")} onClick={closeMenu}>Login</Link>
+              <Link to="/register" className={`button ${isActive("/register")}`} onClick={closeMenu} style={{
                 backgroundColor: "var(--primary-color)",
                 color: "white",
                 padding: "0.5rem 1rem",

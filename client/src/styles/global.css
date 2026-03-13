@@ -291,6 +291,7 @@ button:disabled {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  position: relative;
 }
 
 .nav-brand {
@@ -329,6 +330,72 @@ button:disabled {
 .nav-link:hover,
 .nav-link.active {
   color: var(--primary-color);
+}
+
+.mobile-menu-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text-color);
+  cursor: pointer;
+  padding: 8px;
+}
+
+@media (max-width: 768px) {
+  .mobile-menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .nav-links {
+    display: none;
+    position: absolute;
+    top: calc(100% + 15px);
+    right: 0;
+    background: var(--card-bg);
+    flex-direction: column;
+    padding: var(--spacing-md);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    align-items: flex-start;
+    min-width: 220px;
+    z-index: 100;
+  }
+
+  .nav-links.open {
+    display: flex;
+  }
+
+  .nav-user-section {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 8px;
+  }
+
+  /* Make links touch-friendly */
+  .nav-link {
+    width: 100%;
+    padding: 12px 0;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  .nav-link:last-child {
+    border-bottom: none;
+  }
+
+  .nav-user-section .nav-button,
+  .nav-links .button {
+    width: 100%;
+    text-align: center;
+    margin-top: 8px;
+    display: block;
+  }
 }
 
 /* ─── Listing Detail Page ─── */
@@ -1161,10 +1228,28 @@ button:disabled {
 
 @media (max-width: 480px) {
   .chatbox-panel {
-    width: calc(100vw - 20px);
-    right: 10px;
-    bottom: 82px;
-    height: 60vh;
+    width: 90vw;
+    right: auto;
+    bottom: auto;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    height: 80vh;
+    max-height: 600px;
+    margin: 0;
+    animation: chatbox-mobile-pop 0.2s ease-out forwards;
+  }
+
+  @keyframes chatbox-mobile-pop {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -46%) scale(0.96);
+    }
+
+    to {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
   }
 
   .chatbox-fab {
@@ -1595,6 +1680,7 @@ button:disabled {
 .listing-card .listing-content h3 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   word-break: break-word;
@@ -2400,5 +2486,30 @@ button {
 
   .hero-btn {
     width: 100%;
+  }
+
+  .hero-graphic {
+    margin-top: 120px;
+    height: 320px;
+  }
+
+  .graphic-card {
+    transform: scale(0.7);
+  }
+
+  .graphic-card-1 {
+    transform: scale(0.7) rotate(-5deg) translateX(-20px) translateY(10px);
+  }
+
+  .graphic-card-2 {
+    transform: scale(0.7) rotate(5deg) translateX(20px) translateY(-10px);
+  }
+
+  .hero-graphic:hover .graphic-card-1 {
+    transform: scale(0.7) rotate(-2deg) translateX(-30px) translateY(5px);
+  }
+
+  .hero-graphic:hover .graphic-card-2 {
+    transform: scale(0.7) rotate(8deg) translateX(30px) translateY(-15px);
   }
 }
